@@ -1,0 +1,165 @@
+{
+  "results": [
+    {
+      "test": "ten collision-clear supported spawns",
+      "passed": true,
+      "details": [
+        {
+          "label": "PW_Spawn_01",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_02",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_03",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_04",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_05",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_06",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_07",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_08",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_09",
+          "floor_cm": 98.0
+        },
+        {
+          "label": "PW_Spawn_10",
+          "floor_cm": 98.0
+        }
+      ]
+    },
+    {
+      "test": "spawn spacing outside melee range",
+      "passed": true,
+      "details": 877.4964387392122
+    },
+    {
+      "test": "settings change through normal keys",
+      "passed": true,
+      "details": {
+        "before": {
+          "volume": 1.0,
+          "sensitivity": 1.0,
+          "contrast": false,
+          "quality": -1,
+          "fullscreen": true
+        },
+        "after": {
+          "volume": 0.8999999761581421,
+          "sensitivity": 1.100000023841858,
+          "contrast": true,
+          "quality": -1,
+          "fullscreen": true
+        }
+      }
+    },
+    {
+      "test": "new player controller reloads saved preferences",
+      "passed": true,
+      "details": {
+        "volume": 0.8999999761581421,
+        "sensitivity": 1.100000023841858,
+        "contrast": true,
+        "quality": -1,
+        "fullscreen": true
+      }
+    },
+    {
+      "test": "restore defaults applies every option",
+      "passed": true,
+      "details": {
+        "volume": 1.0,
+        "sensitivity": 1.0,
+        "contrast": false,
+        "quality": 3,
+        "fullscreen": false
+      }
+    },
+    {
+      "test": "Practice enters gameplay",
+      "passed": true,
+      "details": "<PWLocalScreen.IN_GAME: 7>"
+    },
+    {
+      "test": "revised character mesh loaded",
+      "passed": true,
+      "details": "/Game/PillowWars/Characters/PolishedNinjas/Ninja_Red/SK_Ninja_Red.SK_Ninja_Red"
+    },
+    {
+      "test": "Practice W movement",
+      "passed": true,
+      "details": 139.64620904183
+    },
+    {
+      "test": "Practice A movement",
+      "passed": true,
+      "details": 156.76725994593818
+    },
+    {
+      "test": "Practice S movement",
+      "passed": true,
+      "details": 145.4750992423802
+    },
+    {
+      "test": "Practice D movement",
+      "passed": true,
+      "details": 161.90435933763644
+    },
+    {
+      "test": "Practice jump",
+      "passed": true,
+      "details": 100.44610078948386
+    },
+    {
+      "test": "Practice tap 0 one dummy hit",
+      "passed": true,
+      "details": {
+        "hits": 1,
+        "variant": 0,
+        "daze": 24.100000381469727
+      }
+    },
+    {
+      "test": "Practice tap 1 one dummy hit",
+      "passed": true,
+      "details": {
+        "hits": 2,
+        "variant": 1,
+        "daze": 48.20000076293945
+      }
+    },
+    {
+      "test": "Practice tap 2 one dummy hit",
+      "passed": true,
+      "details": {
+        "hits": 3,
+        "variant": 2,
+        "daze": 72.30000305175781
+      }
+    },
+    {
+      "test": "Practice miss does not react",
+      "passed": true,
+      "details": 3
+    }
+  ],
+  "error": null
+}
