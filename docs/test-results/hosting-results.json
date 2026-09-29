@@ -1,0 +1,25 @@
+{
+  "results": [
+    {
+      "test": "standalone H stays in lobby instead of starting practice",
+      "passed": true,
+      "detail": "<PWLocalScreen.LOBBY: 1>"
+    },
+    {
+      "test": "network host requires a second player",
+      "passed": true,
+      "detail": "Waiting for a second player to join..."
+    },
+    {
+      "test": "ready host alone cannot force start",
+      "passed": true,
+      "detail": "Waiting for a second player to join..."
+    },
+    {
+      "test": "explicit Practice still works after hosting",
+      "passed": true,
+      "detail": "<PWLocalScreen.IN_GAME: 7>"
+    }
+  ],
+  "error": null
+}

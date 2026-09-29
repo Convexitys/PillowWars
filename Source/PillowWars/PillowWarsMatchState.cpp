@@ -104,7 +104,7 @@ void APillowWarsHUD::DrawHUD()
         else if(Screen==EPWLocalScreen::Lobby)
         {
             DrawText(TEXT("DREAMER LOBBY"),FLinearColor::White,W*.18f,H*.27f,nullptr,1.2f*S);
-            DrawText(TEXT("Enter / A: ready   C / Y: choose character   H: host offline / start as host   J: join by address"),FLinearColor(.75f,.84f,1),W*.18f,H*.33f,nullptr,.62f*S);
+            DrawText(TEXT("Enter / A: ready   C / Y: choose character   H: open LAN host / start   J: join by address"),FLinearColor(.75f,.84f,1),W*.18f,H*.33f,nullptr,.62f*S);
             int32 LobbyIndex=0;
             for(const APlayerState* Player:State->PlayerArray)
                 if(const auto* Fighter=Cast<APillowWarsPlayerState>(Player))
@@ -179,7 +179,7 @@ void APillowWarsHUD::DrawHUD()
             DrawText(TEXT("PAUSED"),FLinearColor::White,W*.40f,H*.29f,nullptr,1.3f*S);
             DrawMenu({TEXT("RESUME"),TEXT("SETTINGS"),TEXT("RETURN TO LOBBY"),TEXT("QUIT")},H*.40f);
         }
-        if(!PWController->GetFrontendStatus().IsEmpty())DrawText(PWController->GetFrontendStatus(),FLinearColor(1,.65f,.35f),W*.20f,H*.87f,nullptr,.68f*S);
+        if(!PWController->GetFrontendStatus().IsEmpty())FitText(PWController->GetFrontendStatus(),FLinearColor(1,.65f,.35f),W*.20f,H*.87f,W*.60f,.68f*S);
         return;
     }
 

@@ -9,6 +9,11 @@ Checked September 27-28, 2026 using Unreal Engine 5.5.3 on the development Windo
 | Two-player | 57/57 | One listen host + one client, real PIE replication, player input events, readiness, loading, movement/jump, tap variants, short/full uppercuts, no charge damage, hand-grip telemetry, resource/refill, guard, cover, scenery blocking, projectile gravity/recharge, elimination/winner/rematch |
 | 8 and 10 players | 12/12 | Separate networked PIE worlds, same process/laptop, low runtime scalability and 640x360 windows; possessed pawns, ready start, minimum initial spacing about 877 cm, client hit/Daze across all worlds, client movement, winner agreement |
 | Arena traversal | 12/12 | Actual CharacterMovement and normal jump input across bed steps, table, chest, shelf, fort, recovery ledge, training bridge, and both ramps; scripted movement directions and reset positions |
+| Final hosting correction | 4/4 | Standalone H opens a listener while staying in Lobby; a second player is required; ready host alone cannot force countdown; explicit Practice still loads |
+| Final Win64 Development package | Passed | Build, cook, stage, archive completed with ExitCode 0 after the hosting correction |
+| Final packaged-game runtime | Not verified | Desktop launch approval timed out; packaging is not a successful interactive smoke test |
+
+The 16/57/12/12 suites preceded the small hosting correction. The four hosting checks and final package build followed it. They are not a claim that every suite was rerun against the final packaged executable.
 
 The first two-player throw sample used a fixed time delay and missed the projectile. The corrected test polls for the actual server projectile before measuring velocity. Its vertical velocity decreased from approximately +283 to +143 cm/s over the sample, consistent with gravity. No projectile gameplay code was changed to make the test pass.
 

@@ -4,6 +4,7 @@
 #include "PillowWarsWeapon.h"
 #include "PillowWarsMatchState.h"
 #include "EngineUtils.h"
+#include "Engine/World.h"
 #include "GameFramework/GameUserSettings.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerInput.h"
@@ -256,7 +257,16 @@ void APillowWarsPlayerController::HostStartPressed()
     if(LocalScreen!=EPWLocalScreen::Lobby)return;
     if(GetNetMode()==NM_Standalone)
     {
-        ServerStartFrontendMatch(true);
+        // Turn the existing lobby into a listen host; never bypass ready gating
+        // by silently treating a host request as offline Practice.
+        FURL ListenURL=GetWorld()->URL;
+        ListenURL.AddOption(TEXT("listen"));
+        if(GetWorld()->Listen(ListenURL))
+        {
+            FrontendStatus=TEXT("LAN host open on port 7777. Share your IPv4 address; ready up, then H to start.");
+            UE_LOG(LogTemp,Log,TEXT("PW_HOST_LISTEN_OPEN port=%d"),ListenURL.Port);
+        }
+        else FrontendStatus=TEXT("Could not open host. Another game may already use port 7777. Practice is still available.");
         return;
     }
     if(GetNetMode()==NM_Client)

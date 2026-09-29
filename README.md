@@ -30,7 +30,7 @@ This repository contains the custom C++ gameplay source, sanitized default confi
 | Guard / temporary pillow cover / throw | G / E / Q |
 | Pause / back | Esc |
 | Lobby character selection / ready | C / Enter |
-| Host start | H, after everybody is ready |
+| Open LAN host / start match | H to open host; H again after both/all players are ready |
 | Join by IPv4 address | Join Party menu, or J in lobby |
 | Round reset / rematch vote | R |
 
@@ -39,6 +39,8 @@ For solo testing, select **Practice**. A labeled character dummy reports hits an
 ## Multiplayer scope
 
 Designed around a listen host and direct IPv4 joining. Use the same game version on both Windows computers. This is not Steam/Epic matchmaking and does not provide party invites, NAT traversal, or a relay service. Separate-network Internet connectivity is not yet verified; do not assume a friend on another network can connect automatically. Do not disable your firewall to troubleshoot.
+
+Host: open Play / Party Lobby and press **H** to open port 7777. Share your LAN IPv4 address privately with the other tester. The other tester uses **Join Party** and that address. Each player presses **Enter** to ready up; the host presses **H** again to start. Hosting alone does not start a match; use Practice for solo play. The latest host-button regression passed 4/4 editor checks. Final packaged-game and independent-PC networking remain unverified.
 
 Current verification: **16/16 single-player checks, 57/57 two-player regression checks**, and **12/12 smoke checks across real 8-player and 10-player same-process PIE sessions**. Tests use normal player key handlers with controlled test positions/resources. See [test evidence and limits](docs/TESTING.md). These are automated engineering checks, not proof of fun, final animation quality, or independent-machine networking.
 
