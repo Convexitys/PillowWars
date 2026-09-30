@@ -1,0 +1,76 @@
+name: Assemble verified Windows release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: assemble-pillowwars-v030
+  cancel-in-progress: false
+
+jobs:
+  assemble:
+    if: github.repository == 'Convexitys/PillowWars'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Reassemble exact approved ZIP and verify before attaching
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess, zipfile
+
+          repo = os.environ['GITHUB_REPOSITORY']
+          release_id = 398741021
+          tag = 'v0.3.0'
+          expected_hash = '77e779d5562d520bae461616d136c4ff1304d0d39456d93f69c6142e2ddc5fb5'
+          expected_bytes = 451456984
+          filename = 'PillowWars-v0.3.0-Windows.zip'
+          expected_parts = [f'transfer-{i:03}.part' for i in range(54)]
+
+          def gh(*args):
+              return subprocess.check_output(['gh', *args], text=True)
+
+          def release():
+              return json.loads(gh('api', f'repos/{repo}/releases/{release_id}'))
+
+          current = release()
+          assert current['tag_name'] == tag and current['draft'], 'Only the intended draft is allowed'
+          assets = {a['name']: a for a in current['assets']}
+          assert all(name in assets and assets[name]['state'] == 'uploaded' for name in expected_parts), 'Missing transfer parts'
+          assert filename not in assets, 'Refusing to overwrite a completed asset'
+          assert sum(assets[n]['size'] for n in expected_parts) == expected_bytes
+          work = pathlib.Path(os.environ['RUNNER_TEMP']) / 'pillowwars-release'
+          work.mkdir(exist_ok=True)
+          gh('release', 'download', tag, '--repo', repo, '--pattern', 'transfer-*.part', '--dir', str(work))
+          output = work / filename
+          digest = hashlib.sha256()
+          with output.open('xb') as target:
+              for name in expected_parts:
+                  with (work / name).open('rb') as source:
+                      while data := source.read(1024 * 1024):
+                          digest.update(data)
+                          target.write(data)
+          assert output.stat().st_size == expected_bytes
+          assert digest.hexdigest() == expected_hash, 'ZIP differs from the approved original'
+          with zipfile.ZipFile(output) as archive:
+              assert archive.testzip() is None, 'Corrupt ZIP member'
+              assert 'Windows/PillowWars.exe' in archive.namelist()
+              assert 'Windows/PillowWars/Binaries/Win64/PillowWars.exe' in archive.namelist()
+              assert 'READ-ME-FIRST.md' in archive.namelist()
+          checksum = work / 'PillowWars-v0.3.0-SHA256.txt'
+          checksum.write_text(f'{expected_hash}  {filename}\n')
+          gh('release', 'upload', tag, str(output), str(checksum), '--repo', repo)
+          uploaded = {a['name']: a for a in release()['assets']}[filename]
+          assert uploaded['state'] == 'uploaded' and uploaded['size'] == expected_bytes
+          assert uploaded.get('digest') == 'sha256:' + expected_hash, 'GitHub digest must match'
+          # Remove only our temporary transfer pieces, after the complete ZIP is verified.
+          for name in expected_parts:
+              gh('api', '--method', 'DELETE', f"repos/{repo}/releases/assets/{assets[name]['id']}")
+          print(json.dumps({'verified': True, 'sha256': expected_hash, 'bytes': expected_bytes, 'asset_url': uploaded['browser_download_url']}))
+          print('Draft retained for the final publication check. No game code was built or changed here.')
+          PY
