@@ -12,6 +12,7 @@ Checked September 27-28, 2026 using Unreal Engine 5.5.3 on the development Windo
 | Final hosting correction | 4/4 | Standalone H opens a listener while staying in Lobby; a second player is required; ready host alone cannot force countdown; explicit Practice still loads |
 | Final Win64 Development package | Passed | Build, cook, stage, archive completed with ExitCode 0 after the hosting correction |
 | Final packaged-game runtime | Not verified | Desktop launch approval timed out; packaging is not a successful interactive smoke test |
+| Public Windows release artifact | Passed September 30 | Complete v0.3.0 ZIP published; all 47 nonempty local archive files matched their packaged originals; GitHub assembly passed ZIP CRC checks and SHA-256 matched `77e779d5562d520bae461616d136c4ff1304d0d39456d93f69c6142e2ddc5fb5` |
 
 The 16/57/12/12 suites preceded the small hosting correction. The four hosting checks and final package build followed it. They are not a claim that every suite was rerun against the final packaged executable.
 

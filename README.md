@@ -6,7 +6,14 @@ A student-built Unreal Engine 5.5.3 party-combat prototype: small pajama ninjas,
 
 ## Play without Unreal
 
-Use the **Windows ZIP attached to a release**, when available. Extract the entire ZIP, then run `PillowWars.exe` inside the extracted `Windows` folder. Keep its `Engine` and `PillowWars` folders beside it. The EXE alone is not the game.
+**[Download Pillow Wars for Windows - v0.3.0 (451 MB)](https://github.com/Convexitys/PillowWars/releases/download/v0.3.0/PillowWars-v0.3.0-Windows.zip)**
+
+1. Download the complete game ZIP above. GitHub's green **Code > Download ZIP** is source code, not the playable game.
+2. Extract the entire ZIP, then open the `Windows` folder and run `PillowWars.exe`.
+3. Keep its `Engine` and `PillowWars` folders beside it. The EXE alone is not the game.
+4. Select **Practice** for solo play. Read `READ-ME-FIRST.md` for controls and local-network hosting instructions.
+
+[Release notes and checksum](https://github.com/Convexitys/PillowWars/releases/tag/v0.3.0). The uploaded ZIP matches the original SHA-256 and passed archive-integrity checks. This verifies the download artifact, not the unfinished independent-computer gameplay tests described below.
 
 Windows 64-bit only. A compatible graphics card and Microsoft Visual C++ runtime are required. The build includes the Unreal prerequisite installer. No Unreal Editor installation is needed to play. macOS, Linux, mobile, and browser play are not supported by this Windows build. The executable is unsigned; no code-signing certificate is included.
 
