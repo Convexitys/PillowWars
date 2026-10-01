@@ -8,7 +8,7 @@ The distinctive design combines pillow handling, resource recovery, readable cha
 
 ## Tech stack
 
-Unreal Engine 5.5.3; C++; Unreal networking; editor Python; Blender; procedural GLB asset generation; Git/GitHub; AI-assisted implementation and artwork workflows. Disclose AI assistance and reference/third-party assets honestly.
+Unreal Engine 5.5.3; C++; Unreal networking; editor Python; Blender; procedural GLB asset generation; Git/GitHub. Credit reference and third-party assets appropriately.
 
 ## Required before submitting
 

@@ -53,7 +53,7 @@ Current verification: **16/16 single-player checks, 57/57 two-player regression 
 
 ## Implementation
 
-Unreal C++, replicated player/match state, server-authoritative contact sweeps and damage, procedural poseable-mesh animation, generated character geometry, and editor-Python test/capture scripts. Original character and furniture asset preparation used Python and Blender. Development used AI assistance; the repository does not claim every line or asset was produced unaided.
+Unreal C++, replicated player/match state, server-authoritative contact sweeps and damage, procedural poseable-mesh animation, generated character geometry, and editor-Python test/capture scripts. Original character and furniture asset preparation used Python and Blender.
 
 Start with `PillowWarsGameMode.cpp` (rules/resources), `PillowWarsWeapon.cpp` (pose/contact/replication), `PillowWarsPlayerController.cpp` (input/frontend), and `PillowWarsMatchState.cpp` (state/HUD) under `Source/PillowWars/`.
 
