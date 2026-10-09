@@ -28,6 +28,11 @@ protected:
     virtual void SetupInputComponent() override;
     virtual bool InputKey(const FInputKeyParams& Params) override;
 public:
+    // Authority-only bridge. Bots share the exact charge/release/guard/throw validation used by input RPCs.
+    void ApplyBotControls(const FVector& Direction, bool bJump, bool bAttackHeld, bool bGuard, bool bThrow);
+    UFUNCTION(Exec) void PWAddBot();
+    UFUNCTION(Exec) void PWRemoveBot();
+    UFUNCTION(Exec) void PWStartBots();
     UFUNCTION(BlueprintCallable) void RequestSwing() { SwingPressed(); }
     UFUNCTION(BlueprintCallable) void RequestRestart() { RestartPressed(); }
     UFUNCTION(BlueprintPure) EPWLocalScreen GetLocalScreen() const { return LocalScreen; }
@@ -41,7 +46,29 @@ public:
     float GetLoadingProgress() const;
     FString GetLoadingTip() const;
     const FString& GetFrontendStatus() const { return FrontendStatus; }
+    UFUNCTION(BlueprintPure) FString GetActionHint() const;
+    UFUNCTION(BlueprintPure) int32 GetPracticeStep() const { return PracticeStep; }
+    void SendActionHint(uint32 Generation, const FString& Reason, const FString& Text);
+    UFUNCTION(Client, Reliable) void ClientActionHint(uint32 Generation, uint32 Sequence, const FString& Reason, const FString& Text);
+    UFUNCTION(Client, Reliable) void ClientResourceSession(uint32 Generation);
+    void SendPracticeStep(uint32 Generation,int32 Step);
+    UFUNCTION(Client, Reliable) void ClientPracticeStep(uint32 Generation,uint32 Sequence,int32 Step);
 private:
+    uint32 HintGeneration=0, HintSequence=0, ServerHintSequence=0;
+    uint32 PracticeSequence=0,ServerPracticeSequence=0;
+    FString ActionHint, LastHintReason;
+    float ActionHintExpires=0.f, LastHintSent=-100.f;
+    int32 PracticeStep=-1;
+    void PracticePressed();
+    void ReclaimPressed();
+    UFUNCTION(Server, Reliable) void ServerPracticeChallenge();
+    UFUNCTION(Server, Reliable) void ServerReclaimCover();
+    bool bBotAttackHeld = false;
+    void AddBotPressed();
+    void RemoveBotPressed();
+    void StartBotsPressed();
+    UFUNCTION(Server, Reliable) void ServerEditBots(int32 Change);
+    UFUNCTION(Server, Reliable) void ServerStartBots();
     EPWLocalScreen LocalScreen = EPWLocalScreen::MainMenu;
     EPWLocalScreen SettingsReturnScreen = EPWLocalScreen::MainMenu;
     int32 MenuIndex = 0;

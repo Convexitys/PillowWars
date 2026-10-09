@@ -4,6 +4,9 @@
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "InputCoreTypes.h"
+#include "PillowWarsGameMode.h"
+#include "PillowWarsCover.h"
+#include "PillowWarsStuffingPickup.h"
 #include "Kismet/GameplayStatics.h"
 #if WITH_EDITOR
 #include "Settings/LevelEditorPlaySettings.h"
@@ -36,6 +39,24 @@ void UPillowWarsEditorTestLibrary::RestorePIE()
     if(!Saved)return;
     auto* Settings=GetMutableDefault<ULevelEditorPlaySettings>();
     Settings->SetPlayNumberOfClients(SavedPlayerCount); Settings->SetPlayNetMode(Mode); Settings->SetRunUnderOneProcess(OneProcess); Settings->NewWindowWidth=Width; Settings->NewWindowHeight=Height; Saved=false;
+#endif
+}
+void UPillowWarsEditorTestLibrary::ResourceFixture(APlayerController* Player,float Stuffing,bool DisableAmbient)
+{
+#if WITH_EDITOR
+    if(GIsEditor&&IsValid(Player)&&Player->HasAuthority())
+        if(auto* ResourceMode=Player->GetWorld()->GetAuthGameMode<APillowWarsGameMode>()){ResourceMode->bTestDisableAmbient=DisableAmbient;ResourceMode->TestSetStuffing(Player,Stuffing);}
+#endif
+}
+void UPillowWarsEditorTestLibrary::ResourceCallback(AActor* Object,FName Reason)
+{
+#if WITH_EDITOR
+    if(GIsEditor&&IsValid(Object)&&Object->HasAuthority())
+        if(auto* ResourceMode=Object->GetWorld()->GetAuthGameMode<APillowWarsGameMode>())
+        {
+            if(auto* Cover=Cast<APillowWarsCover>(Object))ResourceMode->ResolveCover(Cover,Reason);
+            if(auto* Pile=Cast<APillowWarsStuffingPickup>(Object))ResourceMode->RetirePile(Pile);
+        }
 #endif
 }
 

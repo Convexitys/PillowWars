@@ -1,4 +1,10 @@
-# Verification - polished prototype
+# Verification history
+
+## Current: v0.5.2 Stuffing Candidate, October 8, 2026
+
+See [candidate rules, exact artifact identity, results and open checks](CANDIDATE-0.5.2.md). Final resource/practice/health/functional/head-motion suites passed 146/146 automated Unreal checks. Those results are separate from the historical counts below. No new 8/10-player or independent-PC verification is claimed. Normal-speed visual review and the elapsed-carry failure/retry acceptance cases remain open.
+
+## Historical: v0.3.0 polished prototype
 
 Checked September 27-28, 2026 using Unreal Engine 5.5.3 on the development Windows laptop.
 

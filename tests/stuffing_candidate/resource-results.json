@@ -1,0 +1,335 @@
+{
+  "results": [
+    {
+      "test": "initial ledger conserved after explicit fixture cleanup",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 7,
+        "open": true,
+        "held": 200000,
+        "loose": 0,
+        "cover": 0,
+        "loss": 144000,
+        "initial": 200000,
+        "supply": 144000,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 0
+      }
+    },
+    {
+      "test": "charging does not pay or spill early",
+      "passed": true,
+      "detail": {
+        "held": 100.0,
+        "sequence": 0,
+        "before": 0,
+        "ledger": {
+          "generation": 1,
+          "sequence": 7,
+          "open": true,
+          "held": 200000,
+          "loose": 0,
+          "cover": 0,
+          "loss": 144000,
+          "initial": 200000,
+          "supply": 144000,
+          "residual": 0,
+          "ambient": 0,
+          "funded": 0
+        }
+      }
+    },
+    {
+      "test": "full client charge pays 32 and spills funded 8",
+      "passed": true,
+      "detail": {
+        "held": 68.0,
+        "ledger": {
+          "generation": 1,
+          "sequence": 9,
+          "open": true,
+          "held": 168000,
+          "loose": 8000,
+          "cover": 0,
+          "loss": 168000,
+          "initial": 200000,
+          "supply": 144000,
+          "residual": 0,
+          "ambient": 0,
+          "funded": 1
+        }
+      }
+    },
+    {
+      "test": "paid spill conserves and adds no ambient supply",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 9,
+        "open": true,
+        "held": 168000,
+        "loose": 8000,
+        "cover": 0,
+        "loss": 168000,
+        "initial": 200000,
+        "supply": 144000,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 1
+      }
+    },
+    {
+      "test": "client sees paid spill and stuffing",
+      "passed": true,
+      "detail": {
+        "client": 68.0,
+        "server": 68.0
+      }
+    },
+    {
+      "test": "unaffordable input has no attack sequence or debit",
+      "passed": true,
+      "detail": {
+        "sequence": 1,
+        "stuffing": 0.0
+      }
+    },
+    {
+      "test": "denial hint private to requesting client",
+      "passed": true,
+      "detail": {
+        "client": "Not enough stuffing for this attack. Recover stuffing from a pile.",
+        "host": ""
+      }
+    },
+    {
+      "test": "grounded rest transfers finite paid pile once",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 24,
+        "open": true,
+        "held": 108000,
+        "loose": 0,
+        "cover": 0,
+        "loss": 236000,
+        "initial": 200000,
+        "supply": 144000,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 0
+      }
+    },
+    {
+      "test": "affordability hint delivered privately",
+      "passed": true,
+      "detail": {
+        "client": "Basic attack affordable. Charged attacks cost more.",
+        "host": ""
+      }
+    },
+    {
+      "test": "guard drain follows elapsed server time",
+      "passed": true,
+      "detail": {
+        "spent": 12.017997741699219,
+        "ledger": {
+          "generation": 1,
+          "sequence": 84,
+          "open": true,
+          "held": 95982,
+          "loose": 0,
+          "cover": 0,
+          "loss": 248018,
+          "initial": 200000,
+          "supply": 144000,
+          "residual": 0,
+          "ambient": 0,
+          "funded": 0
+        }
+      }
+    },
+    {
+      "test": "guard release and drain conserve resources",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 84,
+        "open": true,
+        "held": 95982,
+        "loose": 0,
+        "cover": 0,
+        "loss": 248018,
+        "initial": 200000,
+        "supply": 144000,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 0
+      }
+    },
+    {
+      "test": "cover commits paid 25",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 87,
+        "open": true,
+        "held": 83000,
+        "loose": 0,
+        "cover": 25000,
+        "loss": 248018,
+        "initial": 200000,
+        "supply": 156018,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 0
+      }
+    },
+    {
+      "test": "V reclaim resolves to 15 salvage plus 10 loss",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 88,
+        "open": true,
+        "held": 83000,
+        "loose": 15000,
+        "cover": 0,
+        "loss": 258018,
+        "initial": 200000,
+        "supply": 156018,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 1
+      }
+    },
+    {
+      "test": "second paid cover created",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 91,
+        "open": true,
+        "held": 83000,
+        "loose": 15000,
+        "cover": 25000,
+        "loss": 258018,
+        "initial": 200000,
+        "supply": 181018,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 1
+      }
+    },
+    {
+      "test": "injected duplicate break/expiry/destruction cannot double salvage",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 92,
+        "open": true,
+        "held": 83000,
+        "loose": 30000,
+        "cover": 0,
+        "loss": 268018,
+        "initial": 200000,
+        "supply": 181018,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 2
+      }
+    },
+    {
+      "test": "expiry test has committed cover",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 95,
+        "open": true,
+        "held": 83000,
+        "loose": 30000,
+        "cover": 25000,
+        "loss": 268018,
+        "initial": 200000,
+        "supply": 206018,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 2
+      }
+    },
+    {
+      "test": "natural lifespan expiry releases at most one salvage",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 96,
+        "open": true,
+        "held": 83000,
+        "loose": 45000,
+        "cover": 0,
+        "loss": 278018,
+        "initial": 200000,
+        "supply": 206018,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 3
+      }
+    },
+    {
+      "test": "elimination closes ledger with no orphan or resource residual",
+      "passed": true,
+      "detail": {
+        "generation": 1,
+        "sequence": 98,
+        "open": false,
+        "held": 0,
+        "loose": 0,
+        "cover": 0,
+        "loss": 406018,
+        "initial": 200000,
+        "supply": 206018,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 0
+      }
+    },
+    {
+      "test": "winner agrees on both actual worlds",
+      "passed": true,
+      "detail": {
+        "host": "Dreamer 1 wins! Round score 1/3 | Host: R or everyone votes",
+        "client": "Dreamer 1 wins! Round score 1/3 | Host: R or everyone votes"
+      }
+    },
+    {
+      "test": "rematch starts new resource generation and restores players",
+      "passed": true,
+      "detail": {
+        "generation": 2,
+        "sequence": 1,
+        "open": true,
+        "held": 200000,
+        "loose": 0,
+        "cover": 0,
+        "loss": 0,
+        "initial": 200000,
+        "supply": 0,
+        "residual": 0,
+        "ambient": 0,
+        "funded": 0
+      }
+    },
+    {
+      "test": "rematch clears owner-only old hint",
+      "passed": true,
+      "detail": {
+        "client": "",
+        "host": ""
+      }
+    }
+  ],
+  "error": null,
+  "configuration": "UE5.5.3 real listen-server plus client PIE worlds on one laptop; normal F/G/E/V/R input; positions/resources scripted; duplicate callbacks explicitly injected"
+}

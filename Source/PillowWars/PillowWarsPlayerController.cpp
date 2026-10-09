@@ -12,6 +12,44 @@
 #include "Misc/App.h"
 #include "Misc/ConfigCacheIni.h"
 
+FString APillowWarsPlayerController::GetActionHint() const
+{
+    return GetWorld() && GetWorld()->GetTimeSeconds()<ActionHintExpires ? ActionHint : FString();
+}
+void APillowWarsPlayerController::SendActionHint(uint32 Generation,const FString& Reason,const FString& Text)
+{
+    if(!HasAuthority() || (PlayerState && PlayerState->IsABot()))return;
+    const float Now=GetWorld()->GetTimeSeconds();
+    if(Reason==LastHintReason && Now-LastHintSent<.25f)return;
+    LastHintReason=Reason; LastHintSent=Now;
+    ClientActionHint(Generation,++ServerHintSequence,Reason,Text);
+}
+void APillowWarsPlayerController::ClientActionHint_Implementation(uint32 Generation,uint32 Sequence,const FString& Reason,const FString& Text)
+{
+    if(Generation<HintGeneration || (Generation==HintGeneration && Sequence<=HintSequence))return;
+    if(Generation>HintGeneration){HintGeneration=Generation;HintSequence=0;}
+    HintSequence=Sequence; ActionHint=Text; ActionHintExpires=GetWorld()->GetTimeSeconds()+3.5f;
+}
+void APillowWarsPlayerController::ClientResourceSession_Implementation(uint32 Generation)
+{
+    if(Generation<HintGeneration)return;
+    HintGeneration=Generation;HintSequence=0;PracticeSequence=0;ActionHint.Empty();ActionHintExpires=0;PracticeStep=-1;
+}
+void APillowWarsPlayerController::SendPracticeStep(uint32 Generation,int32 Step)
+{
+    if(HasAuthority())ClientPracticeStep(Generation,++ServerPracticeSequence,Step);
+}
+void APillowWarsPlayerController::ClientPracticeStep_Implementation(uint32 Generation,uint32 Sequence,int32 Step)
+{
+    if(Generation<HintGeneration||(Generation==HintGeneration&&Sequence<=PracticeSequence))return;
+    if(Generation>HintGeneration)ClientResourceSession_Implementation(Generation);
+    PracticeSequence=Sequence;PracticeStep=Step;
+}
+void APillowWarsPlayerController::PracticePressed(){if(LocalScreen==EPWLocalScreen::InGame)ServerPracticeChallenge();}
+void APillowWarsPlayerController::ReclaimPressed(){if(LocalScreen==EPWLocalScreen::InGame)ServerReclaimCover();}
+void APillowWarsPlayerController::ServerPracticeChallenge_Implementation(){if(auto* Mode=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())Mode->TogglePracticeChallenge(this);}
+void APillowWarsPlayerController::ServerReclaimCover_Implementation(){if(auto* Mode=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())Mode->ReclaimCover(this);}
+
 void APillowWarsPlayerController::BeginPlay()
 {
     Super::BeginPlay();
@@ -75,6 +113,11 @@ void APillowWarsPlayerController::PlayerTick(float DeltaTime)
         if(const auto* Match=GetWorld()->GetGameState<APillowWarsMatchState>();Match&&Match->MatchPhase==EPWMatchPhase::Countdown)
         {
             LoadingStartedAt=GetWorld()->GetTimeSeconds();SetLocalScreen(EPWLocalScreen::Loading);
+        }
+        else if(Match&&(Match->MatchPhase==EPWMatchPhase::Playing||Match->MatchPhase==EPWMatchPhase::RoundOver))
+        {
+            // Late arrivals are out until the next round, not stuck in a menu.
+            if(const auto* Fighter=GetPlayerState<APillowWarsPlayerState>();Fighter&&Fighter->bEliminated)SetLocalScreen(EPWLocalScreen::InGame);
         }
     }
 
@@ -392,13 +435,20 @@ void APillowWarsPlayerController::ServerThrow_Implementation()
 {
     if(!GetPawn())return;
     if(auto* S=GetPlayerState<APillowWarsPlayerState>();S&&S->bEliminated)return;
-    if(auto* M=GetWorld()->GetGameState<APillowWarsMatchState>();M&&!M->Result.IsEmpty())return;
-    for(TActorIterator<APillowWarsWeapon> It(GetWorld());It;++It)if(It->GetOwner()==GetPawn()){It->StartThrow(GetWorld()->GetTimeSeconds());break;}
+    if(auto* M=GetWorld()->GetGameState<APillowWarsMatchState>();!M||M->MatchPhase!=EPWMatchPhase::Playing||!M->Result.IsEmpty())return;
+    auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>();
+    const float Now=GetWorld()->GetTimeSeconds();if(GM)GM->SettleResources(this,Now);
+    for(TActorIterator<APillowWarsWeapon> It(GetWorld());It;++It)if(It->GetOwner()==GetPawn()){if(It->StartThrow(Now)&&GM)GM->RecordResourceAction(this,Now);break;}
 }
 
 void APillowWarsPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
+    InputComponent->BindKey(EKeys::T,IE_Pressed,this,&APillowWarsPlayerController::PracticePressed);
+    InputComponent->BindKey(EKeys::V,IE_Pressed,this,&APillowWarsPlayerController::ReclaimPressed);
+    InputComponent->BindKey(EKeys::F6,IE_Pressed,this,&APillowWarsPlayerController::AddBotPressed);
+    InputComponent->BindKey(EKeys::F7,IE_Pressed,this,&APillowWarsPlayerController::RemoveBotPressed);
+    InputComponent->BindKey(EKeys::F8,IE_Pressed,this,&APillowWarsPlayerController::StartBotsPressed);
     InputComponent->BindKey(EKeys::W,IE_Pressed,this,&APillowWarsPlayerController::MoveForwardKeyPressed);
     InputComponent->BindKey(EKeys::W,IE_Released,this,&APillowWarsPlayerController::MoveForwardKeyReleased);
     InputComponent->BindKey(EKeys::S,IE_Pressed,this,&APillowWarsPlayerController::MoveBackwardKeyPressed);
@@ -455,12 +505,16 @@ void APillowWarsPlayerController::SwingPressed() { UE_LOG(LogTemp,Log,TEXT("PW_I
 void APillowWarsPlayerController::SwingReleased() { ServerReleaseCharge(); }
 void APillowWarsPlayerController::ServerBeginCharge_Implementation()
 {
-    if(!GetPawn())return;
-    if(auto* S=GetPlayerState<APillowWarsPlayerState>();S&&(S->bEliminated||S->bGuarding))return;
+    auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>();
+    if(GM)GM->SettleResources(this,GetWorld()->GetTimeSeconds());
+    if(!GetPawn()){if(GM)SendActionHint(GM->GetResourceGeneration(),TEXT("state"),TEXT("Attack unavailable: wait for the next round."));return;}
+    if(auto* S=GetPlayerState<APillowWarsPlayerState>();S&&(S->bEliminated||S->bGuarding)){if(GM)SendActionHint(GM->GetResourceGeneration(),TEXT("state"),S->bEliminated?TEXT("You are out. Wait for the next round."):TEXT("Release guard before attacking."));return;}
     if(auto* M=GetWorld()->GetGameState<APillowWarsMatchState>();M&&!M->Result.IsEmpty())return;
     const float Now=GetWorld()->GetTimeSeconds();
     for(TActorIterator<APillowWarsWeapon> It(GetWorld());It;++It)if(It->GetOwner()==GetPawn()) {
-        if(It->ChargeStartTime>=0||It->IsThrowing(Now)||Now-It->SwingTime<.65f)return;
+        if(It->ChargeStartTime>=0)return;
+        if(It->IsThrowing(Now)||Now-It->SwingTime<.65f){if(GM)SendActionHint(GM->GetResourceGeneration(),TEXT("cooldown"),TEXT("Attack cooling down. Wait, then try again."));return;}
+        if(GM)GM->RecordResourceAction(this,Now);
         It->ChargeStartTime=Now; It->ForceNetUpdate(); break;
     }
 }
@@ -470,12 +524,7 @@ void APillowWarsPlayerController::ServerReleaseCharge_Implementation()
         if(It->ChargeStartTime<0)return;
         const float Held=GetWorld()->GetTimeSeconds()-It->ChargeStartTime;
         It->ChargeStartTime=-100; It->ForceNetUpdate();
-        const int32 Sequence=It->AttackSequence;
-        ServerSwing_Implementation();
-        if(It->AttackSequence!=Sequence&&Held>=.20f) {
-            It->AttackVariant=3; It->ReleasedChargeDuration=Held; It->ChargePower=FMath::Clamp(Held/2.f,0.f,1.f); It->ForceNetUpdate();
-            UE_LOG(LogTemp,Log,TEXT("PW_UPPERCUT_RELEASE held=%.2f power=%.2f"),Held,It->ChargePower);
-        }
+        if(auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())GM->SwingWithCharge(this,Held>=.20f?FMath::Clamp(Held/2.f,0.f,1.f):-1.f,Held);
         break;
     }
 }
@@ -494,3 +543,29 @@ void APillowWarsPlayerController::ServerAdjustSelection_Implementation(int32 Cha
 }
 void APillowWarsPlayerController::ServerStartFrontendMatch_Implementation(bool bPractice){if(auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())GM->StartFrontendMatch(this,bPractice);}
 void APillowWarsPlayerController::ServerReturnToLobby_Implementation(){if(auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())GM->ReturnToLobby(this);}
+
+void APillowWarsPlayerController::ApplyBotControls(const FVector& Direction, bool bJump, bool bAttackHeld, bool bGuard, bool bThrow)
+{
+    if (!HasAuthority() || !PlayerState || !PlayerState->IsABot()) return;
+    const auto* Match = GetWorld()->GetGameState<APillowWarsMatchState>();
+    const bool bCanAct = Match && Match->MatchPhase == EPWMatchPhase::Playing && Match->Result.IsEmpty() && GetPawn();
+    ServerSetGuard_Implementation(bCanAct && bGuard);
+    if (bCanAct && bAttackHeld && !bBotAttackHeld) ServerBeginCharge_Implementation();
+    if (!bAttackHeld && bBotAttackHeld) ServerReleaseCharge_Implementation();
+    bBotAttackHeld = bCanAct && bAttackHeld;
+    if (auto* BotPawn = Cast<ACharacter>(GetPawn()))
+    {
+        if (bCanAct && bJump) BotPawn->Jump(); else BotPawn->StopJumping();
+    }
+    if (bCanAct && bThrow) ServerThrow_Implementation();
+}
+void APillowWarsPlayerController::AddBotPressed(){if(LocalScreen==EPWLocalScreen::Lobby)ServerEditBots(1);}
+void APillowWarsPlayerController::RemoveBotPressed(){if(LocalScreen==EPWLocalScreen::Lobby)ServerEditBots(-1);}
+void APillowWarsPlayerController::StartBotsPressed(){if(LocalScreen==EPWLocalScreen::Lobby)ServerStartBots();}
+void APillowWarsPlayerController::PWAddBot(){ServerEditBots(1);}
+void APillowWarsPlayerController::PWRemoveBot(){ServerEditBots(-1);}
+void APillowWarsPlayerController::PWStartBots(){ServerStartBots();}
+void APillowWarsPlayerController::ServerEditBots_Implementation(int32 Change)
+{if(auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())GM->EditBots(this,Change);}
+void APillowWarsPlayerController::ServerStartBots_Implementation()
+{if(auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())GM->StartFrontendMatch(this,false);}

@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "test": "practice challenge is optional and off initially",
+      "passed": true,
+      "detail": -1
+    },
+    {
+      "test": "T starts optional practice",
+      "passed": true,
+      "detail": 0
+    },
+    {
+      "test": "normal dummy hit advances to low-resource challenge",
+      "passed": true,
+      "detail": {
+        "step": 1,
+        "stuffing": 4.0,
+        "hits": 1
+      }
+    },
+    {
+      "test": "rejected normal input advances recovery instruction",
+      "passed": true,
+      "detail": {
+        "step": 2,
+        "hint": "Not enough stuffing for this attack. Recover stuffing from a pile."
+      }
+    },
+    {
+      "test": "finite pile rest unlocks affordable attack step",
+      "passed": true,
+      "detail": {
+        "step": 3,
+        "stuffing": 18.233999252319336
+      }
+    },
+    {
+      "test": "normal dummy hit completes challenge",
+      "passed": true,
+      "detail": {
+        "step": 4,
+        "hits": 2
+      }
+    },
+    {
+      "test": "practice resource bookkeeping remains conserved",
+      "passed": true,
+      "detail": "{\"generation\":1,\"sequence\":38,\"open\":true,\"held\":10234,\"loose\":33766,\"cover\":0,\"loss\":200000,\"initial\":100000,\"supply\":144000,\"residual\":0,\"ambient\":0,\"funded\":1}"
+    },
+    {
+      "test": "T restarts completed challenge",
+      "passed": true,
+      "detail": 0
+    },
+    {
+      "test": "T can skip unfinished challenge",
+      "passed": true,
+      "detail": -1
+    }
+  ],
+  "error": null,
+  "configuration": "one real standalone PIE world; T/F production input with server position/resource fixtures; no map saved"
+}

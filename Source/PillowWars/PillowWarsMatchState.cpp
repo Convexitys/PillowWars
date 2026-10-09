@@ -7,6 +7,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "PillowWarsPlayerController.h"
+#include "PillowWarsGameMode.h"
 #include "Engine/Texture2D.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -19,6 +20,10 @@ APillowWarsHUD::APillowWarsHUD()
 void APillowWarsPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(APillowWarsPlayerState, Health);
+    DOREPLIFETIME(APillowWarsPlayerState, LastHitDamage);
+    DOREPLIFETIME(APillowWarsPlayerState, bLastHitCritical);
+    DOREPLIFETIME(APillowWarsPlayerState, LastHitServerTime);
     DOREPLIFETIME(APillowWarsPlayerState, Daze);
     DOREPLIFETIME(APillowWarsPlayerState, bEliminated);
     DOREPLIFETIME(APillowWarsPlayerState, RoundWins);
@@ -105,6 +110,7 @@ void APillowWarsHUD::DrawHUD()
         {
             DrawText(TEXT("DREAMER LOBBY"),FLinearColor::White,W*.18f,H*.27f,nullptr,1.2f*S);
             DrawText(TEXT("Enter / A: ready   C / Y: choose character   H: open LAN host / start   J: join by address"),FLinearColor(.75f,.84f,1),W*.18f,H*.33f,nullptr,.62f*S);
+            FitText(TEXT("Host: F6 add bot | F7 remove bot | F8 start with bots (ready first)"),FLinearColor(.65f,1,.75f),W*.18f,H*.365f,W*.64f,.62f*S);
             int32 LobbyIndex=0;
             for(const APlayerState* Player:State->PlayerArray)
                 if(const auto* Fighter=Cast<APillowWarsPlayerState>(Player))
@@ -153,7 +159,7 @@ void APillowWarsHUD::DrawHUD()
         else if(Screen==EPWLocalScreen::Tutorial)
         {
             DrawText(TEXT("HOW TO DREAM-FIGHT"),FLinearColor::White,W*.28f,H*.27f,nullptr,1.15f*S);
-            TArray<FString> Tips={TEXT("WASD / left stick: move     Mouse / right stick: look"),TEXT("Space / A: jump across furniture and recovery platforms"),TEXT("Tap F / X: cycle three soft-pillow swings"),TEXT("Hold F / X: charge the circular uppercut"),TEXT("Q / RB: throw the regenerating back pillow"),TEXT("Hits build Daze; higher Daze creates stronger knockback"),TEXT("Counter during the purple Resonance pulse for bonus force"),TEXT("Fall below the room boundary and you are eliminated"),TEXT("Last dreamer standing wins; first to three rounds is champion")};
+            TArray<FString> Tips={TEXT("WASD / left stick: move     Mouse / right stick: look"),TEXT("Space / A: jump across furniture and recovery platforms"),TEXT("Tap F / X: swing (8 stuffing). Hold: uppercut (up to 32)"),TEXT("Stronger uppercuts cause more damage and spend more stuffing"),TEXT("Q / RB: throw the regenerating back pillow"),TEXT("Hits reduce Health and build Daze for stronger knockback"),TEXT("Resonance: critical chance rises from 1.5% to 55%; crit = 1.75x damage"),TEXT("Zero health or falling out eliminates you; no in-round respawn"),TEXT("Last standing wins; R rematches after the result (practice can reset)")};
             Tips.Insert(TEXT("G / LB: guard   E / LT: build a temporary pillow shield"),5);
             Tips.Insert(TEXT("Stop beside a feather pile to crouch and refill; moving cancels"),6);
             float TY=H*.36f;for(const FString& Tip:Tips){FitText(Tip,FLinearColor(.82f,.88f,1),W*.20f,TY,W*.60f,.69f*S);TY+=FMath::Min(36*S,H*.42f/Tips.Num());}
@@ -202,8 +208,13 @@ void APillowWarsHUD::DrawHUD()
     const APillowWarsPlayerState* LocalState=PlayerOwner?PlayerOwner->GetPlayerState<APillowWarsPlayerState>():nullptr;
     const float Daze=LocalState?LocalState->Daze:0;
     const FLinearColor DazeColor=Daze<50?FLinearColor(.2f,.9f,.45f):Daze<80?FLinearColor(1,.72f,.12f):FLinearColor(1,.2f,.18f);
-    const float PanelY=H-178*S;
-    DrawRect(FLinearColor(.015f,.025f,.055f,.88f),18*S,PanelY,380*S,160*S);
+    const float Health=LocalState?LocalState->Health:0.f;
+    const float HealthY=H-225*S;
+    DrawRect(FLinearColor(.015f,.025f,.055f,.88f),18*S,HealthY,380*S,207*S);
+    DrawText(LocalState&&LocalState->bEliminated?TEXT("OUT - WAIT FOR THE NEXT ROUND"):FString::Printf(TEXT("HEALTH %.0f / 100"),Health),Health>30.f?FLinearColor(.5f,1,.6f):FLinearColor(1,.3f,.3f),30*S,HealthY+8*S,nullptr,.78f*S);
+    DrawRect(FLinearColor(.08f,.08f,.11f,1),30*S,HealthY+29*S,316*S,11*S);
+    DrawRect(Health>30.f?FLinearColor(.15f,.85f,.35f):FLinearColor(1,.2f,.2f),32*S,HealthY+31*S,312*S*FMath::Clamp(Health/100.f,0.f,1.f),7*S);
+    const float PanelY=HealthY+47*S;
     DrawText(FString::Printf(TEXT("DAZE %.0f%%     WINS %d/3"),Daze,LocalState?LocalState->RoundWins:0),FLinearColor::White,30*S,PanelY+10*S,nullptr,.78f*S);
     DrawRect(FLinearColor(.08f,.08f,.11f,1),30*S,PanelY+38*S,320*S,17*S);
     DrawRect(DazeColor,32*S,PanelY+40*S,316*S*FMath::Clamp(Daze/100.f,0.f,1.f),13*S);
@@ -212,6 +223,17 @@ void APillowWarsHUD::DrawHUD()
     DrawRect(FLinearColor(.08f,.08f,.11f,1),30*S,PanelY+79*S,316*S,9*S);
     DrawRect(FLinearColor(.2f,.8f,.68f,1),32*S,PanelY+81*S,312*S*FMath::Clamp(Stuffing/100.f,0.f,1.f),5*S);
     DrawText(TEXT("Rest beside feathers: refill +24/s | Move to cancel"),FLinearColor(.76f,.82f,.88f),30*S,PanelY+136*S,nullptr,.55f*S);
+    if(PWController)
+    {
+        const FString Hint=PWController->GetActionHint();
+        if(!Hint.IsEmpty())FitText(Hint,FLinearColor(1.f,.87f,.47f),W*.18f,H*.63f,W*.64f,.8f*S);
+        const int32 Step=PWController->GetPracticeStep();
+        if(Step>=0)
+        {
+            static const TCHAR* Steps[]={TEXT("PRACTICE 1/4: Land a basic F hit on the dummy. T skips."),TEXT("PRACTICE 2/4: LOW-STUFFING SETUP. Tap F to see why it fails."),TEXT("PRACTICE 3/4: Find a pile and stand still beside it to refill."),TEXT("PRACTICE 4/4: Basic attack affordable. Hit the dummy again."),TEXT("COMPLETE: Attacks spend stuffing; recover it to attack again. T restarts.")};
+            FitText(Steps[FMath::Clamp(Step,0,4)],FLinearColor(.65f,1.f,.8f),W*.15f,H*.69f,W*.7f,.75f*S);
+        }
+    }
 
     APillowWarsWeapon* LocalWeapon=nullptr;
     for(TActorIterator<APillowWarsWeapon> It(GetWorld());It;++It)if(PlayerOwner&&It->GetOwner()==PlayerOwner->GetPawn()){LocalWeapon=*It;break;}
@@ -219,7 +241,7 @@ void APillowWarsHUD::DrawHUD()
     {
         const float Wait=FMath::Max(0.f,LocalWeapon->ThrowReadyTime-Now);
         DrawText(Wait>0?FString::Printf(TEXT("THROW %.1fs"),Wait):TEXT("THROW READY"),Wait>0?FLinearColor(.6f,.7f,.8f):FLinearColor(0,1,1),30*S,PanelY+106*S,nullptr,.68f*S);
-        DrawText(TEXT("RESONANCE"),FLinearColor(.8f,.65f,1),160*S,PanelY+106*S,nullptr,.64f*S);
+        DrawText(FString::Printf(TEXT("CRIT %.1f%%"),1.5f+.535f*LocalWeapon->ResonanceCharge),FLinearColor(.8f,.65f,1),160*S,PanelY+106*S,nullptr,.64f*S);
         DrawRect(FLinearColor(.08f,.08f,.11f,1),250*S,PanelY+110*S,98*S,11*S);
         DrawRect(FLinearColor(.7f,.28f,1),252*S,PanelY+112*S,94*S*LocalWeapon->ResonanceCharge/100.f,7*S);
         if(LocalWeapon->IsResonanceWindow(Now))
@@ -229,13 +251,14 @@ void APillowWarsHUD::DrawHUD()
             const float Power=FMath::Clamp((Now-LocalWeapon->ChargeStartTime)/2.f,0.f,1.f);
             DrawRect(FLinearColor(.03f,.03f,.05f,.92f),W*.5f-162*S,H-70*S,324*S,31*S);
             DrawRect(FLinearColor(1,.48f,.08f),W*.5f-157*S,H-65*S,314*S*Power,21*S);
-            DrawText(Power>=1.f?TEXT("FULL POWER  |  RELEASE F / X"):FString::Printf(TEXT("WINDING UP  %.0f%%  |  RELEASE F / X"),100*Power),Power>=1.f?FLinearColor(.55f,1.f,.72f):FLinearColor(1.f,.82f,.55f),W*.5f-128*S,H-97*S,nullptr,.82f*S);
+            const float Cost=APillowWarsGameMode::SwingStuffingCost((Now-LocalWeapon->ChargeStartTime)<.2f?-1.f:Power);
+            FitText(FString::Printf(TEXT("POWER %.0f%% | COST %.0f | RELEASE F / X"),100*Power,Cost),PWResourceMath::Quantize(Stuffing)>=PWResourceMath::Quantize(Cost)?FLinearColor(.55f,1.f,.72f):FLinearColor(1.f,.32f,.2f),W*.5f-157*S,H-97*S,314*S,.82f*S);
         }
         const float HitAge=Now-LocalWeapon->HitPulseTime;
         const float ContactAge=Now-LocalWeapon->ContactTime;
         if(HitAge>=0&&HitAge<.18f)DrawRect(FLinearColor(1,.08f,.08f,.17f*(1-HitAge/.18f)),0,0,W,H);
         if(ContactAge>=0&&ContactAge<.24f)
-            DrawText(LocalWeapon->ResonanceAttackPower>0?TEXT("RESONANCE STRIKE!"):TEXT("PILLOW HIT!"),
+            DrawText(LocalWeapon->bLastContactCritical?TEXT("CRITICAL HIT! 1.75x"):LocalWeapon->ResonanceAttackPower>0?TEXT("RESONANCE STRIKE!"):TEXT("PILLOW HIT!"),
                 LocalWeapon->ResonanceAttackPower>0?FLinearColor(1,.4f,1):FLinearColor(1,.92f,.35f),W*.5f-94*S,H*.34f,nullptr,1.25f*S);
     }
     if(LocalState)
@@ -252,7 +275,7 @@ void APillowWarsHUD::DrawHUD()
     {
         if (const auto* Fighter = Cast<APillowWarsPlayerState>(Player))
         {
-            FitText(FString::Printf(TEXT("%s  %.0f%%  [%d] %s"),*Fighter->GetPlayerName().Left(18),Fighter->Daze,Fighter->RoundWins,
+            FitText(FString::Printf(TEXT("%s HP %.0f D %.0f [%d] %s"),*Fighter->GetPlayerName().Left(18),Fighter->Health,Fighter->Daze,Fighter->RoundWins,
                 Fighter->bEliminated?TEXT("OUT"):TEXT("")),Fighter->bEliminated?FLinearColor(.5f,.5f,.55f):FLinearColor(1,.9f,.35f),W-246*S,Y,222*S,.66f*S);
             Y+=22*S;
         }

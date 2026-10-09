@@ -1,0 +1,834 @@
+{
+  "results": [
+    {
+      "test": "crit curve 0",
+      "passed": true,
+      "detail": 0.014999999664723873
+    },
+    {
+      "test": "crit curve 25",
+      "passed": true,
+      "detail": 0.14875000715255737
+    },
+    {
+      "test": "crit curve 50",
+      "passed": true,
+      "detail": 0.2824999988079071
+    },
+    {
+      "test": "crit curve 75",
+      "passed": true,
+      "detail": 0.41624999046325684
+    },
+    {
+      "test": "crit curve 100",
+      "passed": true,
+      "detail": 0.550000011920929
+    },
+    {
+      "test": "crit curve -50",
+      "passed": true,
+      "detail": 0.014999999664723873
+    },
+    {
+      "test": "crit curve 150",
+      "passed": true,
+      "detail": 0.550000011920929
+    },
+    {
+      "test": "swing cost -1",
+      "passed": true,
+      "detail": 8.0
+    },
+    {
+      "test": "swing cost 0",
+      "passed": true,
+      "detail": 8.0
+    },
+    {
+      "test": "swing cost 0.25",
+      "passed": true,
+      "detail": 14.0
+    },
+    {
+      "test": "swing cost 0.5",
+      "passed": true,
+      "detail": 20.0
+    },
+    {
+      "test": "swing cost 0.75",
+      "passed": true,
+      "detail": 26.0
+    },
+    {
+      "test": "swing cost 1",
+      "passed": true,
+      "detail": 32.0
+    },
+    {
+      "test": "critical multiplier and guard formula",
+      "passed": true,
+      "detail": {
+        "full_crit": 61.25,
+        "guard": 5.400000095367432
+      }
+    },
+    {
+      "test": "both players load and all fighters start at 100 health",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "Dreamer 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        }
+      }
+    },
+    {
+      "test": "host W movement",
+      "passed": true,
+      "detail": 164.54811815129727
+    },
+    {
+      "test": "client W movement",
+      "passed": true,
+      "detail": 149.52341940721067
+    },
+    {
+      "test": "client F causes one server-authoritative health hit",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "health": 85.0,
+          "daze": 25.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 1,
+          "damage": 15.0,
+          "crit": false
+        },
+        "Dreamer 2": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 92.0,
+          "hits": 1,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        },
+        "BOT 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        }
+      }
+    },
+    {
+      "test": "health, Daze, critical result and hits replicate",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "health": 85.0,
+            "daze": 25.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 1,
+            "damage": 15.0,
+            "crit": false
+          },
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 92.0,
+            "hits": 1,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 92.0,
+            "hits": 1,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "Dreamer 1": {
+            "health": 85.0,
+            "daze": 25.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 1,
+            "damage": 15.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        }
+      }
+    },
+    {
+      "test": "miss costs 8 stuffing without damage",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "health": 85.0,
+          "daze": 25.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 1,
+          "damage": 15.0,
+          "crit": false
+        },
+        "Dreamer 2": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 92.0,
+          "hits": 1,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        },
+        "BOT 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        }
+      }
+    },
+    {
+      "test": "no damage during charge 0.5",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 1,
+          "damage": 15.0,
+          "crit": false
+        },
+        "Dreamer 2": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 1,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        },
+        "BOT 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        }
+      }
+    },
+    {
+      "test": "charged input cost and hit 0.5",
+      "passed": true,
+      "detail": {
+        "power": 0.2584269046783447,
+        "cost": 14.202003479003906,
+        "damage": 16.46067237854004,
+        "critical": false
+      }
+    },
+    {
+      "test": "no damage during charge 2.05",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 2,
+          "damage": 16.46067237854004,
+          "crit": false
+        },
+        "Dreamer 2": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 2,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        },
+        "BOT 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        }
+      }
+    },
+    {
+      "test": "charged input cost and hit 2.05",
+      "passed": true,
+      "detail": {
+        "power": 1.0,
+        "cost": 32.0,
+        "damage": 35.0,
+        "critical": false
+      }
+    },
+    {
+      "test": "full uppercut costs more and has greater base damage",
+      "passed": true,
+      "detail": [
+        {
+          "power": 0.2584269046783447,
+          "cost": 14.202003479003906,
+          "damage": 16.46067237854004,
+          "critical": false
+        },
+        {
+          "power": 1.0,
+          "cost": 32.0,
+          "damage": 35.0,
+          "critical": false
+        }
+      ]
+    },
+    {
+      "test": "insufficient stuffing rejects full-power swing",
+      "passed": true,
+      "detail": {
+        "sequence": 4,
+        "stuff": 10.0
+      }
+    },
+    {
+      "test": "rapid input preserves cooldown and charges only accepted swing",
+      "passed": true,
+      "detail": {
+        "sequence_delta": 1,
+        "stuff": 92.0
+      }
+    },
+    {
+      "test": "live full-gauge client critical is 55% and 1.75x tap damage",
+      "passed": true,
+      "detail": {
+        "attempts": 1,
+        "chance": 0.550000011920929,
+        "snapshot": {
+          "Dreamer 1": {
+            "health": 73.75,
+            "daze": 100.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 4,
+            "damage": 26.25,
+            "crit": true
+          },
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 92.0,
+            "hits": 4,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        }
+      }
+    },
+    {
+      "test": "critical flag and damage agree on client",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "health": 73.75,
+            "daze": 100.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 4,
+            "damage": 26.25,
+            "crit": true
+          },
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 95.03399658203125,
+            "hits": 4,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 95.03399658203125,
+            "hits": 4,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "Dreamer 1": {
+            "health": 73.75,
+            "daze": 100.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 4,
+            "damage": 26.25,
+            "crit": true
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        }
+      }
+    },
+    {
+      "test": "zero-health client is eliminated with no pawn on either world",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 92.0,
+          "hits": 1,
+          "taken": 4,
+          "damage": 26.25,
+          "crit": true
+        },
+        "Dreamer 2": {
+          "health": 0.0,
+          "daze": 25.0,
+          "out": true,
+          "stuff": 0.0,
+          "hits": 4,
+          "taken": 1,
+          "damage": 15.0,
+          "crit": false
+        },
+        "BOT 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        }
+      }
+    },
+    {
+      "test": "round continues with host and bot alive",
+      "passed": true,
+      "detail": "<PWMatchPhase.PLAYING: 2>"
+    },
+    {
+      "test": "neither player can respawn or reset a live competitive round",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 99.03299713134766,
+          "hits": 1,
+          "taken": 4,
+          "damage": 26.25,
+          "crit": true
+        },
+        "Dreamer 2": {
+          "health": 0.0,
+          "daze": 25.0,
+          "out": true,
+          "stuff": 0.0,
+          "hits": 4,
+          "taken": 1,
+          "damage": 15.0,
+          "crit": false
+        },
+        "BOT 1": {
+          "health": 100.0,
+          "daze": 0.0,
+          "out": false,
+          "stuff": 100.0,
+          "hits": 0,
+          "taken": 0,
+          "damage": 0.0,
+          "crit": false
+        }
+      }
+    },
+    {
+      "test": "health elimination produces one agreeing winner",
+      "passed": true,
+      "detail": {
+        "server": "Dreamer 1 wins! Round score 1/3 | Host: R or everyone votes",
+        "client": "Dreamer 1 wins! Round score 1/3 | Host: R or everyone votes",
+        "roster": {
+          "Dreamer 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 92.0,
+            "hits": 2,
+            "taken": 4,
+            "damage": 26.25,
+            "crit": true
+          },
+          "Dreamer 2": {
+            "health": 0.0,
+            "daze": 25.0,
+            "out": true,
+            "stuff": 0.0,
+            "hits": 4,
+            "taken": 1,
+            "damage": 15.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 0.0,
+            "daze": 25.0,
+            "out": true,
+            "stuff": 0.0,
+            "hits": 0,
+            "taken": 1,
+            "damage": 15.0,
+            "crit": false
+          }
+        }
+      }
+    },
+    {
+      "test": "client vote does not independently resurrect anyone",
+      "passed": true,
+      "detail": {
+        "votes": 1,
+        "roster": {
+          "Dreamer 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 92.0,
+            "hits": 2,
+            "taken": 4,
+            "damage": 26.25,
+            "crit": true
+          },
+          "Dreamer 2": {
+            "health": 0.0,
+            "daze": 25.0,
+            "out": true,
+            "stuff": 0.0,
+            "hits": 4,
+            "taken": 1,
+            "damage": 15.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 0.0,
+            "daze": 25.0,
+            "out": true,
+            "stuff": 0.0,
+            "hits": 0,
+            "taken": 1,
+            "damage": 15.0,
+            "crit": false
+          }
+        }
+      }
+    },
+    {
+      "test": "explicit post-result rematch restores players and bot to full health",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "Dreamer 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        }
+      }
+    },
+    {
+      "test": "ring-outs still set health zero and agree on winner",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "Dreamer 2": {
+            "health": 0.0,
+            "daze": 0.0,
+            "out": true,
+            "stuff": 0.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 0.0,
+            "daze": 0.0,
+            "out": true,
+            "stuff": 0.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "health": 0.0,
+            "daze": 0.0,
+            "out": true,
+            "stuff": 0.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "Dreamer 1": {
+            "health": 100.0,
+            "daze": 0.0,
+            "out": false,
+            "stuff": 100.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          },
+          "BOT 1": {
+            "health": 0.0,
+            "daze": 0.0,
+            "out": true,
+            "stuff": 0.0,
+            "hits": 0,
+            "taken": 0,
+            "damage": 0.0,
+            "crit": false
+          }
+        },
+        "result": "Dreamer 1 wins! Round score 2/3 | Host: R or everyone votes"
+      }
+    }
+  ],
+  "error": null,
+  "configuration": "UE5.5.3, two actual network PIE worlds, listen host and client, one server-only bot; normal input with scripted positioning and resources"
+}

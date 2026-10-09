@@ -1,5 +1,6 @@
 #include "PillowWarsGameMode.h"
 #include "PillowWarsPlayerController.h"
+#include "PillowWarsBotController.h"
 #include "PillowWarsMatchState.h"
 #include "PillowWarsWeapon.h"
 #include "PillowWarsProjectile.h"
@@ -41,7 +42,19 @@ void APillowWarsGameMode::PostLogin(APlayerController* NewPlayer)
         const int32 DisplayNumber=GameState?GameState->PlayerArray.Num():1;
         NewPlayer->PlayerState->SetPlayerName(FString::Printf(TEXT("Dreamer %d"),FMath::Max(1,DisplayNumber)));
         if(auto* Fighter=NewPlayer->GetPlayerState<APillowWarsPlayerState>())Fighter->CharacterIndex=FMath::Abs(Fighter->GetPlayerId())%4;
+        if(const auto* Match=GetGameState<APillowWarsMatchState>();HasActorBegunPlay() && Match && (Match->MatchPhase==EPWMatchPhase::Playing||Match->MatchPhase==EPWMatchPhase::RoundOver) && !bPracticeSession)
+        {
+            if(auto* Fighter=NewPlayer->GetPlayerState<APillowWarsPlayerState>()){Fighter->Health=0.f;Fighter->bEliminated=true;Fighter->ForceNetUpdate();}
+            if(APawn* Pawn=NewPlayer->GetPawn())Pawn->Destroy();
+        }
     }
+}
+
+void APillowWarsGameMode::RestartPlayer(AController* NewPlayer)
+{
+    const auto* Match=GetGameState<APillowWarsMatchState>();
+    if(HasActorBegunPlay()&&Match&&!bPracticeSession&&(Match->MatchPhase==EPWMatchPhase::Playing||Match->MatchPhase==EPWMatchPhase::RoundOver))return;
+    Super::RestartPlayer(NewPlayer);
 }
 
 void APillowWarsGameMode::Logout(AController* Exiting)
@@ -50,6 +63,7 @@ void APillowWarsGameMode::Logout(AController* Exiting)
         GetGameState<APillowWarsMatchState>()->MatchPhase == EPWMatchPhase::RoundOver;
     if (APlayerController* Player=Cast<APlayerController>(Exiting))
     {
+        SettleResources(Player,GetWorld()->GetTimeSeconds());RetireOwner(Player);
         LastSwingTime.Remove(Player);LastCombatAction.Remove(Player);LastCoverTime.Remove(Player);LastResourceNetUpdate.Remove(Player);
         if(ACharacter* Pawn=Cast<ACharacter>(Player->GetPawn())){LastPickupSpawnTime.Remove(Pawn);ClearCovers(Pawn);}
     }
@@ -58,7 +72,7 @@ void APillowWarsGameMode::Logout(AController* Exiting)
     {
         int32 ConnectedPlayers = 0;
         for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-            if (It->Get() && It->Get() != Exiting) ++ConnectedPlayers;
+            if (It->Get() && It->Get() != Exiting && It->Get()->PlayerState && !It->Get()->PlayerState->IsABot()) ++ConnectedPlayers;
         ClearRematchVotes(ConnectedPlayers);
     }
 }
@@ -73,7 +87,7 @@ void APillowWarsGameMode::ClearRematchVotes(int32 ConnectedPlayers)
         {
             ConnectedPlayers = 0;
             for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-                if (It->Get()) ++ConnectedPlayers;
+                if (It->Get() && It->Get()->PlayerState && !It->Get()->PlayerState->IsABot()) ++ConnectedPlayers;
         }
         Match->PlayersNeededToRematch = ConnectedPlayers;
         Match->ForceNetUpdate();
@@ -97,14 +111,16 @@ void APillowWarsGameMode::Tick(float DeltaSeconds)
         }
         if(Match->MatchPhase==EPWMatchPhase::Playing && Match->MatchEndServerTime>0 && Now>=Match->MatchEndServerTime && !bMatchOver)
         {
-            bMatchOver=true; Match->MatchPhase=EPWMatchPhase::RoundOver;
-            ClearCovers();ClearStuffingPickups();
-            Match->Result=TEXT("Dream time expired! Host: R to rematch"); Match->ForceNetUpdate();
+            // A clock expiring must not end a last-standing match without a victor.
+            Match->MatchEndServerTime=0.f;
+            AnnounceMoment(TEXT("OVERTIME: fight until one dreamer remains!"));
+            Match->ForceNetUpdate();
         }
     }
     if (bMatchOver) return;
     const auto* CurrentMatch=GetGameState<APillowWarsMatchState>();
     const bool bGameplayActive=CurrentMatch&&CurrentMatch->MatchPhase==EPWMatchPhase::Playing;
+    if(bGameplayActive&&!bResourceOpen)OpenResources();
     const float GameplayNow=GetWorld()->GetTimeSeconds();
     if(bGameplayActive&&!bWasGameplayActive)
     {
@@ -112,10 +128,10 @@ void APillowWarsGameMode::Tick(float DeltaSeconds)
         NextAmbientPileSpawnTime=GameplayNow;
     }
     bWasGameplayActive=bGameplayActive;
-    if(bGameplayActive&&GameplayNow>=NextAmbientPileSpawnTime)
+    if(bGameplayActive&&!bTestDisableAmbient&&GameplayNow>=NextAmbientPileSpawnTime)
     {
         int32 ActivePiles=0;
-        for(TActorIterator<APillowWarsStuffingPickup> It(GetWorld());It;++It)++ActivePiles;
+        for(const auto& Pair:PileBook)if(Pair.Value.bAmbient)++ActivePiles;
         if(ActivePiles<AmbientPileTarget)
         {
             const bool bSpawned=SpawnAmbientStuffingPile();
@@ -148,60 +164,19 @@ void APillowWarsGameMode::Tick(float DeltaSeconds)
         }
         if (auto* State=It->Get()->GetPlayerState<APillowWarsPlayerState>())
         {
-            const float Dt=FMath::Clamp(DeltaSeconds,0.f,.05f);
-            const float Now=GetWorld()->GetTimeSeconds();
-            APillowWarsStuffingPickup* NearbyPile=nullptr;
-            const APillowWarsWeapon* Weapon=Weapons.FindRef(Pawn);
-            const bool bCanStuff=Pawn&&!State->bEliminated&&!State->bGuarding&&State->Stuffing<100.f&&
-                Pawn->GetCharacterMovement()->IsMovingOnGround()&&Pawn->GetVelocity().Size2D()<15.f&&
-                (!Weapon||(Weapon->ChargeStartTime<0.f&&!Weapon->IsThrowing(Now)&&Now-Weapon->SwingTime>=.65f))&&
-                Now-LastCombatAction.FindRef(It->Get())>=1.f;
-            if(bCanStuff)for(TActorIterator<APillowWarsStuffingPickup> Pile(GetWorld());Pile;++Pile) {
-                if(Pile->IsActorBeingDestroyed()||Pile->RemainingStuffing<=0.f)continue;
-                if(FVector::Dist2D(Pawn->GetActorLocation(),Pile->GetActorLocation())>115.f||
-                    FMath::Abs(Pawn->GetActorLocation().Z-Pile->GetActorLocation().Z)>160.f)continue;
-                FHitResult Obstruction; FCollisionQueryParams Query; Query.AddIgnoredActor(Pawn); Query.AddIgnoredActor(*Pile);
-                if(GetWorld()->LineTraceSingleByChannel(Obstruction,Pawn->GetActorLocation(),Pile->GetActorLocation()+FVector(0,0,15),ECC_Visibility,Query))continue;
-                NearbyPile=*Pile; break;
-            }
-            const bool bShouldStuff=NearbyPile!=nullptr;
-            if(State->bStuffingResting!=bShouldStuff)
-            {
-                State->bStuffingResting=bShouldStuff;
-                State->ForceNetUpdate();
-            }
-            if(Pawn)
-            {
-                UCharacterMovementComponent* Movement=Pawn->GetCharacterMovement();
-                if(Movement)Movement->GetNavAgentPropertiesRef().bCanCrouch=true;
-                if(bShouldStuff&&!Pawn->bIsCrouched)Pawn->Crouch();
-                else if(!bShouldStuff&&Pawn->bIsCrouched)Pawn->UnCrouch();
-            }
-            bool bResourceChanged=false;
-            if(State->bGuarding)
-            {
-                State->Stuffing=FMath::Max(0.f,State->Stuffing-8.f*Dt);
-                LastCombatAction.Add(It->Get(),GetWorld()->GetTimeSeconds());
-                if(State->Stuffing<=0.f)State->bGuarding=false;
-                bResourceChanged=true;
-            }
-            else if(bShouldStuff)
-            {
-                const float Before=State->Stuffing;
-                State->Stuffing+=NearbyPile->TakeStuffing(FMath::Min(100.f-State->Stuffing,24.f*Dt));
-                if(NearbyPile->IsActorBeingDestroyed())++State->RoundStuffingCollected;
-                bResourceChanged=!FMath::IsNearlyEqual(Before,State->Stuffing);
-            }
-            if(bResourceChanged && Now-LastResourceNetUpdate.FindRef(It->Get())>=.2f)
-            { State->ForceNetUpdate(); LastResourceNetUpdate.Add(It->Get(),Now); }
+            SettleResources(It->Get(),GetWorld()->GetTimeSeconds());
         }
-        if (Pawn && Pawn->GetActorLocation().Z < -700.0f)
+        const auto* Fighter=It->Get()->GetPlayerState<APillowWarsPlayerState>();
+        if (Pawn && (Pawn->GetActorLocation().Z < -700.0f || (Fighter && (Fighter->Health<=0.f||Fighter->bEliminated))))
         {
+            RetireOwner(It->Get());
             FighterStates.FindOrAdd(Pawn).Eliminated = true;
             ClearCovers(Pawn);
             if (auto* State = Pawn->GetPlayerState<APillowWarsPlayerState>())
             {
                 State->bEliminated = true;
+                State->Health=0.f;
+                State->bGuarding=false; State->bStuffingResting=false;
                 State->ForceNetUpdate();
             }
             UE_LOG(LogTemp, Log, TEXT("Pillow Wars elimination: %s"), *Pawn->GetName());
@@ -221,7 +196,7 @@ void APillowWarsGameMode::Tick(float DeltaSeconds)
     if (bRoundStarted && Alive <= 1 && !bPracticeSession)
     {
         bMatchOver = true;
-        ClearCovers();ClearStuffingPickups();
+        CloseResources(TEXT("round_over"));ClearCovers();ClearStuffingPickups();
         if (auto* Match = GetGameState<APillowWarsMatchState>())
         {
             Match->MatchPhase=EPWMatchPhase::RoundOver;
@@ -238,7 +213,7 @@ void APillowWarsGameMode::Tick(float DeltaSeconds)
                             : FString::Printf(TEXT(" wins! Round score %d/3 | Host: R or everyone votes"),Winner->RoundWins));
                     }
                 }
-            int32 Players=0; for(FConstPlayerControllerIterator Count=GetWorld()->GetPlayerControllerIterator();Count;++Count)if(Count->Get())++Players;
+            int32 Players=0; for(FConstPlayerControllerIterator Count=GetWorld()->GetPlayerControllerIterator();Count;++Count)if(Count->Get()&&Count->Get()->PlayerState&&!Count->Get()->PlayerState->IsABot())++Players;
             Match->PlayersNeededToRematch=Players;
             Match->RematchVotes=0;
             Match->ForceNetUpdate();
@@ -304,44 +279,84 @@ void APillowWarsGameMode::BuildArena()
     SpawnArenaBox(TEXT("PW_PillowGold"), FVector(250, 300, 320), FVector(2.2f, 1.4f, 0.35f), FLinearColor(0.90f, 0.62f, 0.12f));
 }
 
+float APillowWarsGameMode::SwingStuffingCost(float UppercutPower)
+{
+    return UppercutPower<0.f?8.f:8.f+24.f*FMath::Clamp(UppercutPower,0.f,1.f);
+}
+
+float APillowWarsGameMode::CriticalChance(float ResonancePercent)
+{
+    return .015f+.535f*FMath::Clamp(ResonancePercent/100.f,0.f,1.f);
+}
+
+float APillowWarsGameMode::HealthDamage(float UppercutPower,float StuffingPower,bool bCritical,bool bGuarded)
+{
+    const float Base=UppercutPower<0.f?15.f:10.f+25.f*FMath::Clamp(UppercutPower,0.f,1.f);
+    return Base*FMath::Clamp(StuffingPower,.55f,1.f)*(bCritical?1.75f:1.f)*(bGuarded?.36f:1.f);
+}
+
 void APillowWarsGameMode::ServerSwing(APlayerController* Attacker)
 {
+    SwingWithCharge(Attacker,-1.f,0.f);
+}
+
+void APillowWarsGameMode::SwingWithCharge(APlayerController* Attacker,float UppercutPower,float Held)
+{
+    SettleResources(Attacker,GetWorld()->GetTimeSeconds());
     if (!HasAuthority() || !Attacker || !Attacker->GetPawn() || bMatchOver) return;
     if(const auto* Match=GetGameState<APillowWarsMatchState>();Match&&Match->MatchPhase!=EPWMatchPhase::Playing)return;
     auto* State=Attacker->GetPlayerState<APillowWarsPlayerState>();
     if(!State||State->bEliminated||State->bGuarding)return;
     const float Now = GetWorld()->GetTimeSeconds();
-    if (const float* Last = LastSwingTime.Find(Attacker); Last && Now - *Last < SwingCooldown) return;
+    if (const float* Last = LastSwingTime.Find(Attacker); Last && Now - *Last < SwingCooldown)
+    {if(auto* C=Cast<APillowWarsPlayerController>(Attacker))C->SendActionHint(ResourceGeneration,TEXT("cooldown"),TEXT("Attack cooling down. Wait, then try again."));return;}
     ACharacter* AttackerPawn = Cast<ACharacter>(Attacker->GetPawn());
     if (!AttackerPawn) return;
     if (APillowWarsWeapon* Weapon = Weapons.FindRef(AttackerPawn))
     {
         if(Weapon->IsThrowing(Now))return;
+        const float Cost=SwingStuffingCost(UppercutPower);
+        const int64 CostUnits=PWResourceMath::Quantize(Cost);
+        if(GetHeld(State)<CostUnits)
+        {
+            if(auto* C=Cast<APillowWarsPlayerController>(Attacker))C->SendActionHint(ResourceGeneration,TEXT("stuffing"),TEXT("Not enough stuffing for this attack. Recover stuffing from a pile."));
+            if(PracticeSteps.Contains(Attacker)&&PracticeSteps.FindRef(Attacker)==1)PracticeProgress(Attacker,2);
+            return;
+        }
+        const float Strength=FMath::Max(.55f,1.f-(100.f-State->Stuffing)*.0045f);
         LastSwingTime.Add(Attacker, Now);
-        State->Stuffing=FMath::Max(0.f,State->Stuffing-8.f);
+        if(!Debit(Attacker,CostUnits,TEXT("attack_payment")))return;
         State->ForceNetUpdate(); LastResourceNetUpdate.Add(Attacker,Now); LastCombatAction.Add(Attacker,Now);
-        Weapon->StartSwing(Now,State->Stuffing>=0.f?FMath::Max(.55f,1.f-(100.f-State->Stuffing)*.0045f):.55f);
-        AnnounceMoment(FString::Printf(TEXT("%s spent 8 stuffing on a swing"),*State->GetPlayerName()));
+        Weapon->StartSwing(Now,Strength);
+        if(UppercutPower>=0.f){Weapon->AttackVariant=3;Weapon->ChargePower=FMath::Clamp(UppercutPower,0.f,1.f);Weapon->ReleasedChargeDuration=Held;Weapon->ForceNetUpdate();}
+        RecordResourceAction(Attacker,Now);
+        if(UppercutPower>=0.f)
+        {PlaceLoose(AttackerPawn->GetActorLocation()+AttackerPawn->GetActorRightVector()*80.f,PWResourceMath::Quantize(8.f*FMath::Clamp(UppercutPower,0.f,1.f)),false);ResourceAudit(TEXT("paid_spill"));}
+        if(auto* C=Cast<APillowWarsPlayerController>(Attacker))C->SendActionHint(ResourceGeneration,TEXT("accepted"),TEXT(""));
+        AnnounceMoment(FString::Printf(TEXT("%s spent %.0f stuffing on a swing"),*State->GetPlayerName(),Cost));
     }
 }
 
 void APillowWarsGameMode::SetGuard(APlayerController* Player,bool bPressed)
 {
     if(!HasAuthority()||!IsValid(Player)||Player->GetWorld()!=GetWorld())return;
+    SettleResources(Player,GetWorld()->GetTimeSeconds());
     auto* State=Player->GetPlayerState<APillowWarsPlayerState>();
     const auto* Match=GetGameState<APillowWarsMatchState>();
     if(!State)return;
     if(!bPressed){State->bGuarding=false;State->ForceNetUpdate();return;}
+    if(State->bGuarding)return;
     if(!Match||Match->MatchPhase!=EPWMatchPhase::Playing||bMatchOver||State->bEliminated||State->Stuffing<10.f||!Player->GetPawn())return;
     APillowWarsWeapon* Weapon=Weapons.FindRef(Cast<ACharacter>(Player->GetPawn()));
     const float Now=GetWorld()->GetTimeSeconds();
     if(Weapon&&(Now-Weapon->SwingTime<SwingCooldown||Weapon->ChargeStartTime>=0||Weapon->IsThrowing(Now)))return;
-    State->bGuarding=true;LastCombatAction.Add(Player,Now);State->ForceNetUpdate();
+    State->bGuarding=true;RecordResourceAction(Player,Now);State->ForceNetUpdate();
 }
 
 void APillowWarsGameMode::PlaceCover(APlayerController* Player)
 {
     if(!HasAuthority()||!IsValid(Player)||Player->GetWorld()!=GetWorld())return;
+    SettleResources(Player,GetWorld()->GetTimeSeconds());
     auto* State=Player->GetPlayerState<APillowWarsPlayerState>();
     ACharacter* Pawn=Cast<ACharacter>(Player->GetPawn());
     const auto* Match=GetGameState<APillowWarsMatchState>();
@@ -363,21 +378,23 @@ void APillowWarsGameMode::PlaceCover(APlayerController* Player)
     if(FMath::Abs(Floor.ImpactPoint.Z-FeetZ)>55.f||Floor.ImpactNormal.Z<.7f)return;
     Location.Z=Floor.ImpactPoint.Z+44.f;
     FActorSpawnParameters Params;Params.Owner=Pawn;Params.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
-    if(!GetWorld()->SpawnActor<APillowWarsCover>(CoverClass,Location,Pawn->GetActorRotation(),Params))return;
-    State->Stuffing-=25.f;++State->RoundCoversPlaced;State->ForceNetUpdate();
+    const uint32 Generation=ResourceGeneration;
+    FTransform Transform(Pawn->GetActorRotation(),Location);
+    auto* Cover=GetWorld()->SpawnActorDeferred<APillowWarsCover>(CoverClass,Transform,Pawn,nullptr,ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding);
+    if(!Cover)return;
+    Cover->FinishSpawning(Transform);
+    if(!bResourceOpen||Generation!=ResourceGeneration||!IsValid(Cover)||Cover->IsActorBeingDestroyed()||!Debit(Player,25000,TEXT("cover_payment"))){if(IsValid(Cover))Cover->Destroy();return;}
+    FPWResourceObject Record;Record.Generation=Generation;Record.Serial=++ResourceSerial;Record.Units=25000;Record.Owner=State;
+    CoverBook.Add(Cover,Record);ResourceLoss-=25000;ResourceAudit(TEXT("cover_commit"));
+    RecordResourceAction(Player,Now);++State->RoundCoversPlaced;State->ForceNetUpdate();
     LastCoverTime.Add(Player,Now);LastCombatAction.Add(Player,Now);LastResourceNetUpdate.Add(Player,Now);
     AnnounceMoment(State->GetPlayerName()+TEXT(" placed pillow cover"));
 }
 
 bool APillowWarsGameMode::CollectStuffing(APlayerController* Player)
 {
-    if(!HasAuthority()||!IsValid(Player)||!Player->GetPawn())return false;
-    const auto* Match=GetGameState<APillowWarsMatchState>();
-    auto* State=Player->GetPlayerState<APillowWarsPlayerState>();
-    if(!Match||Match->MatchPhase!=EPWMatchPhase::Playing||bMatchOver||!bRoundStarted||!State||State->bEliminated||State->Stuffing>=100.f)return false;
-    State->Stuffing=FMath::Min(100.f,State->Stuffing+18.f);++State->RoundStuffingCollected;
-    State->ForceNetUpdate();LastResourceNetUpdate.Add(Player,GetWorld()->GetTimeSeconds());
-    AnnounceMoment(State->GetPlayerName()+TEXT(" recovered stuffing"));return true;
+    // Legacy minting path is disabled. Recovery must transfer from a registered pile.
+    return false;
 }
 
 void APillowWarsGameMode::AnnounceMoment(const FString& Moment)
@@ -437,49 +454,54 @@ bool APillowWarsGameMode::SpawnAmbientStuffingPile()
         if(!GetWorld()->LineTraceSingleByChannel(Floor,TraceStart,TraceEnd,ECC_Visibility,Query)||Floor.ImpactNormal.Z<.72f)continue;
         if(Floor.ImpactPoint.Z<MinZ-300.f||Floor.ImpactPoint.Z>MaxZ+1000.f)continue;
         Location=Floor.ImpactPoint;
-        if(GetWorld()->SpawnActor<APillowWarsStuffingPickup>(Location,FRotator::ZeroRotator))return true;
+        if(PlaceLoose(Location,48000,true)>0){ResourceAudit(TEXT("ambient_supply"));return true;}
     }
     return false;
 }
 
 void APillowWarsGameMode::SpawnStuffingPickup(ACharacter* Victim,const FVector& AwayFromAttacker)
 {
-    if(!IsValid(Victim)||!bRoundStarted||bMatchOver||Victim->IsA<APillowWarsPracticeTarget>())return;
-    const float Now=GetWorld()->GetTimeSeconds();
-    if(Now-LastPickupSpawnTime.FindRef(Victim)<2.8f)return;
-    int32 Active=0;for(TActorIterator<APillowWarsStuffingPickup> It(GetWorld());It;++It)++Active;
-    if(Active>=4)return;
-    FVector Location=Victim->GetActorLocation()+AwayFromAttacker.GetSafeNormal2D()*72.f;
-    FCollisionQueryParams Query;Query.AddIgnoredActor(Victim);
-    FHitResult Floor;
-    if(!GetWorld()->LineTraceSingleByChannel(Floor,Location+FVector(0,0,80),Location-FVector(0,0,180),ECC_Visibility,Query))return;
-    if(FMath::Abs(Floor.ImpactPoint.Z-Victim->GetActorLocation().Z)>155.f||Floor.ImpactNormal.Z<.7f)return;
-    Location.Z=Floor.ImpactPoint.Z;
-    if(GetWorld()->SpawnActor<APillowWarsStuffingPickup>(Location,FRotator::ZeroRotator))LastPickupSpawnTime.Add(Victim,Now);
+    // Contacts never mint free 48-unit piles. Charged releases fund spill instead.
 }
 
-bool APillowWarsGameMode::ApplyPillowContact(APlayerController* Attacker,ACharacter* Victim,const FVector& ImpactDirection,float UppercutPower)
+bool APillowWarsGameMode::ApplyPillowContact(APlayerController* Attacker,ACharacter* Victim,const FVector& ImpactDirection,float UppercutPower,bool bProjectile)
 {
         if (!HasAuthority() || bMatchOver || !Attacker || !Attacker->GetPawn() || !IsValid(Victim) || Victim==Attacker->GetPawn()) return false;
+        const auto* Match=GetGameState<APillowWarsMatchState>();
+        const auto* AuthorityState=Attacker->GetPlayerState<APillowWarsPlayerState>();
+        if(!Match||Match->MatchPhase!=EPWMatchPhase::Playing||!AuthorityState||AuthorityState->bEliminated||AuthorityState->Health<=0.f)return false;
         const FVector ToVictim=Victim->GetActorLocation()-Attacker->GetPawn()->GetActorLocation();
-        const APillowWarsWeapon* AttackWeapon=Weapons.FindRef(Cast<ACharacter>(Attacker->GetPawn()));
-        const float Resonance=AttackWeapon?AttackWeapon->ResonanceAttackPower:0.f;
+        APillowWarsWeapon* AttackWeapon=Weapons.FindRef(Cast<ACharacter>(Attacker->GetPawn()));
+        const float Resonance=!bProjectile&&AttackWeapon?AttackWeapon->ResonanceAttackPower:0.f;
         bool bBlocked=false;
         auto* ReplicatedState=Victim->GetPlayerState<APillowWarsPlayerState>();
+        if(ReplicatedState&&(ReplicatedState->bEliminated||ReplicatedState->Health<=0.f))return false;
+        if(!ReplicatedState&&!Victim->IsA<APillowWarsPracticeTarget>())return false;
+        if(!bResourceOpen)return false;
+        if(auto* Controller=Cast<APlayerController>(Victim->GetController()))SettleResources(Controller,GetWorld()->GetTimeSeconds());
+        if(!bProjectile&&AttackWeapon)
+        {
+            const FString Receipt=FString::Printf(TEXT("%u:%u:%d:%u"),ResourceGeneration,Attacker->GetUniqueID(),AttackWeapon->AttackSequence,Victim->GetUniqueID());
+            if(ContactReceipts.Contains(Receipt))return false;ContactReceipts.Add(Receipt);
+        }
+        // Only accepted server contacts roll; wind-up and misses cannot be critical.
+        // Throws use baseline odds, never stale power from a previous melee swing.
+        const bool bCritical=FMath::FRand()<(AttackWeapon&&!bProjectile?AttackWeapon->AttackCriticalChance:.015f);
+        if(AttackWeapon&&!bProjectile){AttackWeapon->bLastContactCritical=bCritical;AttackWeapon->ForceNetUpdate();}
         if(ReplicatedState)
         {
             const FVector ToAttacker=-ToVictim.GetSafeNormal2D();
             bBlocked=ReplicatedState->bGuarding&&ReplicatedState->Stuffing>=10.f&&FVector::DotProduct(Victim->GetActorForwardVector(),ToAttacker)>.25f;
             if(bBlocked)
             {
-                ReplicatedState->Stuffing=FMath::Max(0.f,ReplicatedState->Stuffing-10.f);
+                Debit(Cast<APlayerController>(Victim->GetController()),10000,TEXT("block_payment"));
                 ++ReplicatedState->RoundGuards;
                 ReplicatedState->GuardPulseServerTime=GetWorld()->GetTimeSeconds();
                 if(ReplicatedState->Stuffing<10.f)ReplicatedState->bGuarding=false;
             }
-            if(auto* VictimController=Cast<APlayerController>(Victim->GetController()))LastCombatAction.Add(VictimController,GetWorld()->GetTimeSeconds());
+            if(auto* VictimController=Cast<APlayerController>(Victim->GetController()))RecordResourceAction(VictimController,GetWorld()->GetTimeSeconds());
         }
-        const float SwingPower=AttackWeapon?AttackWeapon->SwingPower:1.f;
+        const float SwingPower=!bProjectile&&AttackWeapon?AttackWeapon->SwingPower:1.f;
         FPillowFighterState& State = FighterStates.FindOrAdd(Victim);
         const float Power=FMath::Clamp(UppercutPower,0.f,1.f);
         const float UppercutScale=UppercutPower>=0.f?.35f+1.65f*Power:1.f;
@@ -489,6 +511,18 @@ bool APillowWarsGameMode::ApplyPillowContact(APlayerController* Attacker,ACharac
         if (ReplicatedState)
         {
             ReplicatedState->Daze = State.Daze;
+            ReplicatedState->LastHitDamage=HealthDamage(UppercutPower,SwingPower,bCritical,bBlocked);
+            ReplicatedState->LastHitServerTime=GetWorld()->GetTimeSeconds();
+            ReplicatedState->bLastHitCritical=bCritical;
+            ReplicatedState->Health=FMath::Max(0.f,ReplicatedState->Health-ReplicatedState->LastHitDamage);
+            if(ReplicatedState->Health<=0.f)
+            {
+                RetireOwner(Cast<APlayerController>(Victim->GetController()));
+                // Removed safely by the GameMode tick, not while iterating weapon sweeps.
+                ReplicatedState->bEliminated=true;
+                ReplicatedState->bGuarding=false;ReplicatedState->bStuffingResting=false;
+                Victim->GetCharacterMovement()->DisableMovement();
+            }
             ReplicatedState->ForceNetUpdate();
         }
         const float Knockback = (220.0f + State.Daze * 2.0f)*UppercutScale*(1.f+.65f*Resonance)*SwingPower*(bBlocked?.4f:1.f);
@@ -499,6 +533,7 @@ bool APillowWarsGameMode::ApplyPillowContact(APlayerController* Attacker,ACharac
             Target->LastKnockback = Knockback;
             Target->ForceNetUpdate();
             Target->ReactToHit(ImpactDirection,Knockback);
+            if(!bProjectile)PracticeContact(Attacker);
         }
         auto* Practice=Cast<APillowWarsPracticeTarget>(Victim);
         if(!Practice || !Practice->bAnchored)Victim->LaunchCharacter(ToVictim.GetSafeNormal2D() * Knockback + FVector(0, 0, UppercutPower>=0 ? 100+620*Power : 120), true, true);
@@ -519,13 +554,12 @@ bool APillowWarsGameMode::ApplyPillowContact(APlayerController* Attacker,ACharac
                 Feather->Launch(Velocity*(bBlocked?.70f:1.f));
             }
         }
-        AnnounceMoment(bBlocked?TEXT("Pillow met a facing guard"):TEXT("Pillow hit"));
-        if(!bBlocked)SpawnStuffingPickup(Victim,ToVictim);
+        AnnounceMoment(ReplicatedState&&ReplicatedState->bEliminated?FString::Printf(TEXT("%s is OUT - health depleted"),*ReplicatedState->GetPlayerName()):bCritical?TEXT("CRITICAL PILLOW HIT! 1.75x damage"):bBlocked?TEXT("Pillow met a facing guard"):TEXT("Pillow hit"));
         if (APillowWarsWeapon* Weapon=Weapons.FindRef(Victim))
         {
             Weapon->ReceiveImpact(ImpactDirection,Knockback);
         }
-        UE_LOG(LogTemp, Log, TEXT("Pillow hit: Daze=%.0f Knockback=%.0f"), State.Daze, Knockback);
+        UE_LOG(LogTemp, Log, TEXT("Pillow hit: Daze=%.0f Knockback=%.0f Damage=%.2f Health=%.2f Critical=%d"), State.Daze, Knockback,ReplicatedState?ReplicatedState->LastHitDamage:0.f,ReplicatedState?ReplicatedState->Health:100.f,bCritical);
         return true;
 }
 
@@ -576,7 +610,7 @@ void APillowWarsGameMode::StartFrontendMatch(APlayerController* Requester,bool b
     if(Match->MatchPhase!=EPWMatchPhase::Lobby)return;
     int32 Players=0,Ready=0;
     for(APlayerState* PS:Match->PlayerArray){++Players;if(const auto* Fighter=Cast<APillowWarsPlayerState>(PS);Fighter&&Fighter->bReady)++Ready;}
-    const bool bHost=Requester->IsLocalController();
+    const bool bHost=Requester->IsLocalPlayerController() && Requester->PlayerState && !Requester->PlayerState->IsABot();
     if(!bHost)
     {
         Match->LobbyStatus=TEXT("Only the host can start the match.");
@@ -593,7 +627,11 @@ void APillowWarsGameMode::StartFrontendMatch(APlayerController* Requester,bool b
         Match->LobbyStatus=Players<2?TEXT("Waiting for a second player to join..."):TEXT("Every player must be READY before the host starts.");
         Match->ForceNetUpdate();return;
     }
-    bPracticeSession=bPractice;bMatchOver=false;bRoundStarted=false;
+    const int32 Round=Match->RoundNumber;
+    bPracticeSession=bPractice;
+    ResetMatch();
+    Match->RoundNumber=Round;
+    bMatchOver=false;bRoundStarted=false;
     Match->Result.Empty();Match->MatchPhase=EPWMatchPhase::Countdown;Match->CountdownEndServerTime=GetWorld()->GetTimeSeconds()+3.f;
     Match->MatchEndServerTime=0;Match->LobbyStatus=TEXT("Loading arena and synchronizing dreamers...");Match->ForceNetUpdate();
 }
@@ -602,11 +640,12 @@ void APillowWarsGameMode::ReturnToLobby(APlayerController* Requester)
 {
     if(!HasAuthority()||!Requester)return;
     if(!Requester->IsLocalController() && GetNetMode()!=NM_DedicatedServer)return;
+    CloseResources(TEXT("return_to_lobby"));ClearCovers();ClearStuffingPickups();
     bMatchOver=false;bRoundStarted=false;bPracticeSession=false;
     if(auto* Match=GetGameState<APillowWarsMatchState>())
     {
         Match->MatchPhase=EPWMatchPhase::Lobby;Match->Result.Empty();Match->MatchEndServerTime=0;Match->LobbyStatus=TEXT("Choose a dreamer and ready up.");
-        for(APlayerState* PS:Match->PlayerArray)if(auto* Fighter=Cast<APillowWarsPlayerState>(PS)){Fighter->bReady=false;Fighter->ForceNetUpdate();}
+        for(APlayerState* PS:Match->PlayerArray)if(auto* Fighter=Cast<APillowWarsPlayerState>(PS)){Fighter->bReady=Fighter->IsABot();Fighter->ForceNetUpdate();}
         Match->ForceNetUpdate();
     }
 }
@@ -614,6 +653,8 @@ void APillowWarsGameMode::ReturnToLobby(APlayerController* Requester)
 void APillowWarsGameMode::ResetMatch()
 {
     if (!HasAuthority()) return;
+    if(const auto* Match=GetGameState<APillowWarsMatchState>();Match&&Match->MatchPhase==EPWMatchPhase::Playing&&!bMatchOver&&!bPracticeSession)return;
+    CloseResources(TEXT("reset"));
     bool bNewSet=false;
     if(const auto* Match=GetGameState<APillowWarsMatchState>())
         for(const APlayerState* Player:Match->PlayerArray)
@@ -645,6 +686,7 @@ void APillowWarsGameMode::ResetMatch()
         if (auto* State = It->Get()->GetPlayerState<APillowWarsPlayerState>())
         {
             State->Daze = 0;
+            State->Health=100.f;State->LastHitDamage=0.f;State->bLastHitCritical=false;State->LastHitServerTime=-100.f;
             State->bEliminated = false;
             State->Stuffing=100.f;State->bGuarding=false;State->bStuffingResting=false;State->RoundHits=0;State->RoundHitsTaken=0;State->RoundGuards=0;State->RoundCoversPlaced=0;State->RoundCoversBroken=0;State->RoundStuffingCollected=0;
             State->GuardPulseServerTime=-100.f;
@@ -656,7 +698,9 @@ void APillowWarsGameMode::ResetMatch()
         {
             Pawn->SetActorLocation(Starts.IsValidIndex(Index) ? Starts[Index]->GetActorLocation() : FVector(0, Index * 500, 350));
             Pawn->GetCharacterMovement()->StopMovementImmediately();
+            Pawn->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
         }
+        if(auto* Bot=Cast<APillowWarsBotController>(It->Get()))Bot->ResetBot();
     }
 }
 
@@ -668,8 +712,8 @@ void APillowWarsGameMode::RequestReset(APlayerController* Requester)
         StartFrontendMatch(Requester,false);
         return;
     }
-    // The listen host may reset at any time. Remote players cannot erase an active
-    // round; after a result they cast a rematch vote and all players must agree.
+    // No in-match respawn, including the host. Solo practice can reset its dummy.
+    if(!bMatchOver&&!bPracticeSession)return;
     if(Requester->IsLocalController())
     {
         ResetMatch();
@@ -678,7 +722,7 @@ void APillowWarsGameMode::RequestReset(APlayerController* Requester)
     if(!bMatchOver)return;
     RematchVoters.Add(Requester);
     int32 Players=0;
-    for(FConstPlayerControllerIterator It=GetWorld()->GetPlayerControllerIterator();It;++It)if(It->Get())++Players;
+    for(FConstPlayerControllerIterator It=GetWorld()->GetPlayerControllerIterator();It;++It)if(It->Get()&&It->Get()->PlayerState&&!It->Get()->PlayerState->IsABot())++Players;
     if(auto* Match=GetGameState<APillowWarsMatchState>())
     {
         Match->RematchVotes=RematchVoters.Num();
@@ -686,4 +730,55 @@ void APillowWarsGameMode::RequestReset(APlayerController* Requester)
         Match->ForceNetUpdate();
     }
     if(Players>0&&RematchVoters.Num()==Players)ResetMatch();
+}
+
+bool APillowWarsGameMode::EditBots(APlayerController* Requester, int32 Change)
+{
+    auto* Match = GetGameState<APillowWarsMatchState>();
+    if (!HasAuthority() || !Requester || !Requester->IsLocalPlayerController() || !Requester->PlayerState ||
+        Requester->PlayerState->IsABot() || !Match || Match->MatchPhase != EPWMatchPhase::Lobby || (Change != 1 && Change != -1)) return false;
+    if (Change < 0)
+    {
+        APillowWarsBotController* Bot = nullptr;
+        for (TActorIterator<APillowWarsBotController> It(GetWorld()); It; ++It) Bot = *It;
+        if (!Bot) return false;
+        ACharacter* Pawn = Cast<ACharacter>(Bot->GetPawn());
+        if (APillowWarsWeapon* Weapon = Weapons.FindRef(Pawn)) Weapon->Destroy();
+        Weapons.Remove(Pawn); FighterStates.Remove(Pawn);
+        Logout(Bot);
+        if (Pawn) Pawn->Destroy();
+        Bot->Destroy();
+        Match->LobbyStatus = TEXT("Removed a bot. F6 adds; F8 starts when every human is ready.");
+        Match->ForceNetUpdate();
+        return true;
+    }
+    if (Match->PlayerArray.Num() >= 10) { Match->LobbyStatus=TEXT("Arena is full (10 fighters)."); Match->ForceNetUpdate(); return false; }
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    APillowWarsBotController* Bot = GetWorld()->SpawnActor<APillowWarsBotController>(Params);
+    if (!Bot || !Bot->PlayerState) { if(Bot)Bot->Destroy(); return false; }
+    auto* State = Bot->GetPlayerState<APillowWarsPlayerState>();
+    int32 BotNumber = 0, PlayerId = 1000;
+    for (APlayerState* Player : Match->PlayerArray)
+    { if(Player->IsABot())++BotNumber; PlayerId=FMath::Max(PlayerId,Player->GetPlayerId()+1); }
+    State->SetIsABot(true); State->SetPlayerId(PlayerId);
+    State->SetPlayerName(FString::Printf(TEXT("BOT %d"),BotNumber));
+    State->bReady=true; State->CharacterIndex=BotNumber%4;
+    TArray<AActor*> Starts; UGameplayStatics::GetAllActorsOfClass(GetWorld(),APlayerStart::StaticClass(),Starts);
+    AActor* SafeStart=nullptr;
+    for(AActor* Start:Starts)
+    {
+        bool bOccupied=false;
+        for(FConstPlayerControllerIterator It=GetWorld()->GetPlayerControllerIterator();It;++It)
+            if(It->Get()&&It->Get()->GetPawn()&&FVector::DistSquared(It->Get()->GetPawn()->GetActorLocation(),Start->GetActorLocation())<FMath::Square(240.f)) { bOccupied=true; break; }
+        if(!bOccupied){SafeStart=Start;break;}
+    }
+    if(!SafeStart){Bot->Destroy();Match->LobbyStatus=TEXT("No separated bot spawn available.");Match->ForceNetUpdate();return false;}
+    RestartPlayerAtPlayerStart(Bot,SafeStart);
+    if(!Bot->GetPawn()){Bot->Destroy();return false;}
+    Bot->ResetBot(); State->ForceNetUpdate();
+    Match->LobbyStatus=TEXT("Bot added. Enter: ready. F6/F7: add/remove bot. F8: start offline or LAN match.");
+    Match->ForceNetUpdate();
+    UE_LOG(LogTemp,Log,TEXT("PW_BOT_ADDED %s pawn=%s"),*State->GetPlayerName(),*GetNameSafe(Bot->GetPawn()));
+    return true;
 }

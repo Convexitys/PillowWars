@@ -32,6 +32,6 @@ void APillowWarsProjectile::OnImpact(UPrimitiveComponent*,AActor* Other,UPrimiti
     bImpacted=true;
     if(auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())
         if(auto* Victim=Cast<ACharacter>(Other))
-            if(auto* Shooter=Cast<APawn>(GetOwner())) GM->ApplyPillowContact(Cast<APlayerController>(Shooter->GetController()),Victim,Movement->Velocity.GetSafeNormal());
+            if(auto* Shooter=Cast<APawn>(GetOwner())) GM->ApplyPillowContact(Cast<APlayerController>(Shooter->GetController()),Victim,Movement->Velocity.GetSafeNormal(),-1.f,true);
     Destroy();
 }

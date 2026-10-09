@@ -51,11 +51,26 @@ bool APillowWarsCover::ReceivePillowHit(APlayerController* Attacker)
             { ++State->RoundCoversBroken; State->ForceNetUpdate(); }
         Mode->AnnounceMoment(Integrity>0?TEXT("Pillow cover absorbed a hit"):TEXT("Pillow cover broke"));
     }
-    if (Integrity == 0) SetLifeSpan(.18f);
+    if (Integrity == 0)
+    {
+        if(auto* Mode=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())Mode->ResolveCover(this,TEXT("break"));
+        SetLifeSpan(.18f);
+    }
     return true;
 }
 
 void APillowWarsCover::OnRep_Integrity()
 {
     if (Visual) Visual->SetRelativeScale3D(FVector(.9f,.55f,.18f+.09f*FMath::Clamp(Integrity,0,3)));
+}
+void APillowWarsCover::LifeSpanExpired()
+{
+    if(HasAuthority())if(auto* Mode=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())Mode->ResolveCover(this,TEXT("expiry"));
+    Super::LifeSpanExpired();
+}
+void APillowWarsCover::EndPlay(const EEndPlayReason::Type Reason)
+{
+    if(HasAuthority()&&Reason==EEndPlayReason::Destroyed)
+        if(auto* Mode=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())Mode->ResolveCover(this,TEXT("destroy"));
+    Super::EndPlay(Reason);
 }

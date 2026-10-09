@@ -66,6 +66,8 @@ void APillowWarsWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
     DOREPLIFETIME(APillowWarsWeapon,ReactionSequence);
     DOREPLIFETIME(APillowWarsWeapon,ResonanceCharge);
     DOREPLIFETIME(APillowWarsWeapon,ResonanceAttackPower);
+    DOREPLIFETIME(APillowWarsWeapon,AttackCriticalChance);
+    DOREPLIFETIME(APillowWarsWeapon,bLastContactCritical);
     DOREPLIFETIME(APillowWarsWeapon,LastResonanceImpactTime);
     DOREPLIFETIME(APillowWarsWeapon,ThrowTime);
     DOREPLIFETIME(APillowWarsWeapon,ThrowReadyTime);
@@ -76,11 +78,19 @@ void APillowWarsWeapon::ReceiveImpact(const FVector& Direction,float Strength)
     if(!HasAuthority())return;
     FPillowImpact Impact; Impact.Time=GetWorld()->GetTimeSeconds();
     Impact.Direction=Direction.GetSafeNormal(); Impact.Strength=FMath::Clamp(Strength/270.f,.5f,1.6f);
+    ResonanceCharge=FMath::Clamp(ResonanceCharge+20.f+Impact.Strength*18.f,0.f,100.f);
+    // Store the gauge with this event: spending/expiring Resonance must not
+    // abruptly change an already-playing incoming-hit reaction on any client.
+    Impact.Resonance=ResonanceCharge/100.f;
     Impacts.Add(Impact); if(Impacts.Num()>8)Impacts.RemoveAt(0);
     HitPulseTime=Impact.Time;
     LastResonanceImpactTime=Impact.Time;
-    ResonanceCharge=FMath::Clamp(ResonanceCharge+20.f+Impact.Strength*18.f,0.f,100.f);
     ++ReactionSequence; ForceNetUpdate();
+}
+float APillowWarsWeapon::ResonanceReactionGain(float ResonancePercent)
+{
+    const float R=FMath::Clamp(ResonancePercent/100.f,0.f,1.f);
+    return 1.f+.9f*R*R*(3.f-2.f*R);
 }
 bool APillowWarsWeapon::IsResonanceWindow(float Now) const
 {
@@ -107,6 +117,8 @@ void APillowWarsWeapon::StartSwing(float Now,float Power)
 {
     if (!HasAuthority()) return;
     SwingPower=FMath::Clamp(Power,.55f,1.f);
+    AttackCriticalChance=APillowWarsGameMode::CriticalChance(ResonanceCharge);
+    bLastContactCritical=false;
     ResonanceAttackPower=0;
     if(IsResonanceWindow(Now))
     {
@@ -124,6 +136,9 @@ void APillowWarsWeapon::ResetAttack()
     ChargeStartTime=-100; ChargePower=0; ReleasedChargeDuration=0;
     SwingTime = -100; HitPulseTime = -100; ContactTime = -100; HitActors.Reset();HitCovers.Reset(); Impacts.Reset(); ReactionSequence=0; AttackVariant=0; AttackSequence=0;SwingPower=1.f;
     ResonanceCharge=0; ResonanceAttackPower=0; LastResonanceImpactTime=-100; ForceNetUpdate();
+    AttackCriticalChance=.015f; bLastContactCritical=false;
+    HeadAngle=0;HeadVelocity=0;BobbleStrength=0;BobbleVisibility=1;
+    ResonanceBobble=FVector2D::ZeroVector;HeadReaction=FVector2D::ZeroVector;HeadDip=0;
 }
 bool APillowWarsWeapon::StartThrow(float Now)
 {
@@ -518,24 +533,36 @@ void APillowWarsWeapon::Tick(float DeltaSeconds)
     const FVector V=Fighter->GetVelocity();
     const float Accel=FVector::DotProduct((V-PreviousVelocity)/FMath::Max(DeltaSeconds,.001f),Fighter->GetActorForwardVector()); PreviousVelocity=V;
     HeadReaction=FVector2D::ZeroVector; HeadDip=0; LastImpactDirection=FVector::ZeroVector; FVector2D Recoil=FVector2D::ZeroVector;
+    float ReactionResonance=0.f;
     for(const FPillowImpact& Impact:Impacts)
     {
-        const float T=Now-Impact.Time; if(T<0 || T>3)continue;
+        const float T=Now-Impact.Time; if(T<0 || T>4)continue;
+        const float R=FMath::Clamp(Impact.Resonance,0.f,1.f);
+        ReactionResonance=FMath::Max(ReactionResonance,R);
+        const float Gain=ResonanceReactionGain(R*100.f);
+        const float Envelope=FMath::Exp(-(3.8f-1.3f*R)*T)*(1.f-FMath::SmoothStep(2.8f,4.f,T));
         const FVector Dir=VisualWorld().InverseTransformVectorNoScale(Impact.Direction);
         LastImpactDirection=Impact.Direction;
-        HeadDip+=Dir.Z*5*Impact.Strength*FMath::Exp(-4.5f*T)*FMath::Sin(10*T);
+        HeadDip+=Dir.Z*5*Impact.Strength*Gain*Envelope*FMath::Sin(10*T);
         const FVector2D Axis(-Dir.Y,Dir.X);
-        HeadReaction+=Axis*(42*Impact.Strength*FMath::Exp(-3.8f*T)*FMath::Sin(9*T));
+        HeadReaction+=Axis*(42*Impact.Strength*Gain*Envelope*FMath::Sin((9.f-R)*T));
         Recoil+=Axis*(10*Impact.Strength*FMath::Exp(-6*T)*FMath::Sin(8*T));
     }
-    HeadReaction.X=22*FMath::Tanh(HeadReaction.X/22); HeadReaction.Y=22*FMath::Tanh(HeadReaction.Y/22);
+    const float ReactionLimit=22.f+6.f*ReactionResonance;
+    HeadReaction.X=ReactionLimit*FMath::Tanh(HeadReaction.X/ReactionLimit);
+    HeadReaction.Y=ReactionLimit*FMath::Tanh(HeadReaction.Y/ReactionLimit);
     Rotate(TEXT("Spine"),FVector(1,0,0),Recoil.X);
     Rotate(TEXT("Spine"),FVector(0,1,0),Recoil.Y);
     const float Target=FMath::Clamp(-Accel*.004f,-10.f,10.f)+FMath::Sin(Now*2)*1.2f;
     HeadVelocity+=(55*(Target-HeadAngle)-12*HeadVelocity)*Dt;
     HeadAngle=FMath::Clamp(HeadAngle+HeadVelocity*Dt,-18.f,18.f);
-    Rotate(TEXT("Head_Bobble"),FVector(1,0,0),HeadAngle+HeadReaction.X);
-    Rotate(TEXT("Head_Bobble"),FVector(0,1,0),HeadReaction.Y);
+    BobbleStrength=FMath::FInterpTo(BobbleStrength,FMath::Clamp(ResonanceCharge/100.f,0.f,1.f),DeltaSeconds,5.f);
+    BobbleVisibility=FMath::FInterpTo(BobbleVisibility,bIdleSwing&&ChargeStartTime<0.f&&!IsThrowing(Now)?1.f:0.f,DeltaSeconds,12.f);
+    const float ReadyAmplitude=4.f*BobbleStrength*BobbleStrength*BobbleVisibility;
+    // Slow, smooth sway, not random jitter. Camera, collision and combat are untouched.
+    ResonanceBobble=FVector2D(FMath::Sin(Now*5.f)*ReadyAmplitude,FMath::Sin(Now*4.f+.7f)*ReadyAmplitude*.7f);
+    Rotate(TEXT("Head_Bobble"),FVector(1,0,0),FMath::Clamp(HeadAngle+HeadReaction.X+ResonanceBobble.X,-30.f,30.f));
+    Rotate(TEXT("Head_Bobble"),FVector(0,1,0),FMath::Clamp(HeadReaction.Y+ResonanceBobble.Y,-30.f,30.f));
     HeadDip=4*FMath::Tanh(HeadDip/4);
     const int32 HeadIndex=Rig.FindBoneIndex(TEXT("Head_Bobble"));
     if(HeadIndex>=0)Local[HeadIndex].AddToTranslation(FVector(0,0,HeadDip));

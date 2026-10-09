@@ -41,14 +41,20 @@ void APillowWarsStuffingPickup::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(APillowWarsStuffingPickup,RemainingStuffing);
+    DOREPLIFETIME(APillowWarsStuffingPickup,AmbientSource);
+    DOREPLIFETIME(APillowWarsStuffingPickup,ResourceGeneration);
+    DOREPLIFETIME(APillowWarsStuffingPickup,ResourceSerial);
 }
 float APillowWarsStuffingPickup::TakeStuffing(float Requested)
 {
-    if(!HasAuthority()||IsActorBeingDestroyed())return 0;
-    const float Taken=FMath::Clamp(Requested,0.f,RemainingStuffing);
-    RemainingStuffing-=Taken; ForceNetUpdate();
-    if(RemainingStuffing<=KINDA_SMALL_NUMBER)Destroy();
-    return Taken;
+    // Legacy unowned transfers are disabled. GameMode commits both balances first.
+    return 0;
+}
+void APillowWarsStuffingPickup::EndPlay(const EEndPlayReason::Type Reason)
+{
+    if(HasAuthority()&&Reason==EEndPlayReason::Destroyed)
+        if(auto* Mode=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())Mode->RetirePile(this);
+    Super::EndPlay(Reason);
 }
 void APillowWarsStuffingPickup::Tick(float DeltaSeconds)
 {

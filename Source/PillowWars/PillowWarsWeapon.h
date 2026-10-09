@@ -15,6 +15,7 @@ struct FPillowImpact
     UPROPERTY() float Time = -100;
     UPROPERTY() FVector Direction = FVector::ZeroVector;
     UPROPERTY() float Strength = 0;
+    UPROPERTY() float Resonance = 0;
 };
 
 UCLASS()
@@ -39,8 +40,12 @@ public:
     UPROPERTY(Replicated, BlueprintReadOnly) int32 ReactionSequence = 0;
     UPROPERTY(Replicated, BlueprintReadOnly) float ResonanceCharge = 0;
     UPROPERTY(Replicated, BlueprintReadOnly) float ResonanceAttackPower = 0;
+    UPROPERTY(Replicated, BlueprintReadOnly) float AttackCriticalChance = .015f;
+    UPROPERTY(Replicated, BlueprintReadOnly) bool bLastContactCritical = false;
     UPROPERTY(Replicated, BlueprintReadOnly) float LastResonanceImpactTime = -100;
     UPROPERTY(BlueprintReadOnly) FVector2D HeadReaction = FVector2D::ZeroVector;
+    UPROPERTY(BlueprintReadOnly) FVector2D ResonanceBobble = FVector2D::ZeroVector;
+    UFUNCTION(BlueprintPure) static float ResonanceReactionGain(float ResonancePercent);
     UPROPERTY(BlueprintReadOnly) float TorsoYaw = 0;
     UPROPERTY(BlueprintReadOnly) FVector PillowCenter = FVector::ZeroVector;
     UPROPERTY(BlueprintReadOnly) FVector PillowLeadingEdge = FVector::ZeroVector;
@@ -92,6 +97,8 @@ private:
     bool bWasAirborne = false;
     float HeadAngle = 0;
     float HeadVelocity = 0;
+    float BobbleStrength = 0;
+    float BobbleVisibility = 1;
     FVector PreviousVelocity = FVector::ZeroVector;
     FVector PreviousPillowCenter = FVector::ZeroVector;
     bool bLoggedRig = false;

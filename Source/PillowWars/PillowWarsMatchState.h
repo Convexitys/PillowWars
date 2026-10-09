@@ -19,6 +19,10 @@ class PILLOWWARS_API APillowWarsPlayerState : public APlayerState
 {
     GENERATED_BODY()
 public:
+    UPROPERTY(Replicated, BlueprintReadOnly) float Health = 100.f;
+    UPROPERTY(Replicated, BlueprintReadOnly) float LastHitDamage = 0.f;
+    UPROPERTY(Replicated, BlueprintReadOnly) bool bLastHitCritical = false;
+    UPROPERTY(Replicated, BlueprintReadOnly) float LastHitServerTime = -100.f;
     UPROPERTY(Replicated, BlueprintReadOnly) float Daze = 0;
     UPROPERTY(Replicated, BlueprintReadOnly) bool bEliminated = false;
     UPROPERTY(Replicated, BlueprintReadOnly) int32 RoundWins = 0;

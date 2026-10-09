@@ -17,6 +17,8 @@ public:
     bool ReceivePillowHit(APlayerController* Attacker);
     UPROPERTY(ReplicatedUsing=OnRep_Integrity, BlueprintReadOnly) int32 Integrity = 3;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    virtual void LifeSpanExpired() override;
+    virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 private:
     UPROPERTY() TObjectPtr<UBoxComponent> Collision;
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Visual;

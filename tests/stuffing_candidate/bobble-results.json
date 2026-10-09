@@ -1,0 +1,229 @@
+{
+  "results": [
+    {
+      "test": "reaction gain 0",
+      "passed": true,
+      "detail": 1.0
+    },
+    {
+      "test": "reaction gain 25",
+      "passed": true,
+      "detail": 1.140625
+    },
+    {
+      "test": "reaction gain 50",
+      "passed": true,
+      "detail": 1.4500000476837158
+    },
+    {
+      "test": "reaction gain 75",
+      "passed": true,
+      "detail": 1.759374976158142
+    },
+    {
+      "test": "reaction gain 100",
+      "passed": true,
+      "detail": 1.899999976158142
+    },
+    {
+      "test": "bounded ready bobble 0",
+      "passed": true,
+      "detail": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "test": "bounded ready bobble 50",
+      "passed": true,
+      "detail": [
+        1.1684689104635815,
+        1.132237603638283,
+        0.942281600020147,
+        0.5524401368385764,
+        0.16574820620035718,
+        0.27874990490950347,
+        0.7396189382388583,
+        1.0097313021576901,
+        1.178755906127051,
+        1.1839696056894498,
+        1.0493883243604045,
+        0.8514770312617072
+      ]
+    },
+    {
+      "test": "bounded ready bobble 100",
+      "passed": true,
+      "detail": [
+        2.503783874400605,
+        2.6235730536028368,
+        3.0569694258126034,
+        3.5631292639703145,
+        3.8938462513705416,
+        3.993069456699428,
+        3.792914226918795,
+        3.3773008124340964,
+        2.940144276771664,
+        2.688071575908678,
+        2.90345177343619,
+        3.3678618723882963
+      ]
+    },
+    {
+      "test": "high Resonance increases visible ready sway",
+      "passed": true,
+      "detail": [
+        0.0,
+        1.1839696056894498,
+        3.993069456699428
+      ]
+    },
+    {
+      "test": "host ready bobble agrees with client within timing tolerance",
+      "passed": true,
+      "detail": [
+        0.2299263958175742,
+        0.16976278800025357,
+        0.1954200512763506,
+        0.29156190445539554,
+        0.35966969043293245,
+        0.3748372615966515,
+        0.31160104274409994,
+        0.1890638943883347
+      ]
+    },
+    {
+      "test": "extra ready sway is suppressed during charged attack",
+      "passed": true,
+      "detail": [
+        -0.0005122608272358775,
+        -0.00032830843701958656
+      ]
+    },
+    {
+      "test": "incoming hit event once at gauge 0",
+      "passed": true,
+      "detail": {
+        "peak": 21.45576655445641,
+        "sequence": 1
+      }
+    },
+    {
+      "test": "head settles after hits stop 0",
+      "passed": true,
+      "detail": {
+        "reaction": [
+          0.0,
+          0.0
+        ],
+        "ready": [
+          8.833777087602357e-08,
+          3.889942661317036e-07
+        ]
+      }
+    },
+    {
+      "test": "incoming hit event once at gauge 100",
+      "passed": true,
+      "detail": {
+        "peak": 27.934371331936966,
+        "sequence": 1
+      }
+    },
+    {
+      "test": "head settles after hits stop 100",
+      "passed": true,
+      "detail": {
+        "reaction": [
+          0.0,
+          0.0
+        ],
+        "ready": [
+          1.0403390433566528e-06,
+          1.9930214421037817e-06
+        ]
+      }
+    },
+    {
+      "test": "full Resonance incoming head reaction is stronger",
+      "passed": true,
+      "detail": [
+        21.45576655445641,
+        27.934371331936966
+      ]
+    },
+    {
+      "test": "miss does not generate hit or head-reaction event",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "test": "repeated hit remains bounded 0",
+      "passed": true,
+      "detail": [
+        -3.4863010017798434e-15,
+        -14.836412019077976
+      ]
+    },
+    {
+      "test": "repeated hit remains bounded 1",
+      "passed": true,
+      "detail": [
+        21.60502314650327,
+        -7.868339290768592
+      ]
+    },
+    {
+      "test": "repeated hit remains bounded 2",
+      "passed": true,
+      "detail": [
+        -27.387573360310505,
+        -14.586272653921807
+      ]
+    },
+    {
+      "test": "repeated hit remains bounded 3",
+      "passed": true,
+      "detail": [
+        -9.04504767307981,
+        -17.801175302057693
+      ]
+    },
+    {
+      "test": "reaction event and gauge replicate",
+      "passed": true,
+      "detail": {
+        "server_sequence": 5,
+        "client_sequence": 5,
+        "server_gauge": 100.0,
+        "client_gauge": 100.0
+      }
+    },
+    {
+      "test": "repeated head motion eventually settles on both players",
+      "passed": true,
+      "detail": {
+        "server": [
+          0.0,
+          0.0
+        ],
+        "client": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "error": null,
+  "configuration": "two real PIE network worlds, same laptop, normal F input; gauge, positions and survivable health are scripted fixtures"
+}
