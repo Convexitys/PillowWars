@@ -24,14 +24,18 @@ void APillowWarsProjectile::BeginPlay()
     Super::BeginPlay(); Collision->IgnoreActorWhenMoving(GetOwner(),true);
     if(!HasAuthority()){Collision->SetCollisionEnabled(ECollisionEnabled::NoCollision);Movement->Deactivate();}
 }
-void APillowWarsProjectile::Launch(const FVector& Direction){Movement->Velocity=Direction.GetSafeNormal()*1000;}
-void APillowWarsProjectile::Tick(float Dt){Super::Tick(Dt);Pillow->AddLocalRotation(FRotator(0,Dt*720,0));}
-void APillowWarsProjectile::OnImpact(UPrimitiveComponent*,AActor* Other,UPrimitiveComponent*,FVector,const FHitResult&)
+void APillowWarsProjectile::Launch(const FVector& Direction){LastFlightDirection=Direction.GetSafeNormal();Movement->Velocity=LastFlightDirection*1000;}
+void APillowWarsProjectile::Tick(float Dt){Super::Tick(Dt);Pillow->AddLocalRotation(FRotator(0,Dt*720,0));if(HasAuthority()&&!Movement->Velocity.IsNearlyZero())LastFlightDirection=Movement->Velocity.GetSafeNormal();}
+void APillowWarsProjectile::OnImpact(UPrimitiveComponent*,AActor* Other,UPrimitiveComponent*,FVector,const FHitResult& Hit)
 {
     if(!HasAuthority()||bImpacted||Other==GetOwner())return;
     bImpacted=true;
+    // The collision sweep records the current substep before movement stops.
+    FVector Incoming=(Hit.TraceEnd-Hit.TraceStart).GetSafeNormal();
+    if(Incoming.IsNearlyZero())Incoming=Movement->Velocity.GetSafeNormal();
+    if(Incoming.IsNearlyZero())Incoming=LastFlightDirection;
     if(auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())
         if(auto* Victim=Cast<ACharacter>(Other))
-            if(auto* Shooter=Cast<APawn>(GetOwner())) GM->ApplyPillowContact(Cast<APlayerController>(Shooter->GetController()),Victim,Movement->Velocity.GetSafeNormal(),-1.f,true);
+            if(auto* Shooter=Cast<APawn>(GetOwner())) GM->ApplyPillowContact(Cast<APlayerController>(Shooter->GetController()),Victim,Incoming,-1.f,true);
     Destroy();
 }

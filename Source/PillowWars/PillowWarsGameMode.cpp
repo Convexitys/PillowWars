@@ -471,6 +471,11 @@ bool APillowWarsGameMode::ApplyPillowContact(APlayerController* Attacker,ACharac
         const auto* AuthorityState=Attacker->GetPlayerState<APillowWarsPlayerState>();
         if(!Match||Match->MatchPhase!=EPWMatchPhase::Playing||!AuthorityState||AuthorityState->bEliminated||AuthorityState->Health<=0.f)return false;
         const FVector ToVictim=Victim->GetActorLocation()-Attacker->GetPawn()->GetActorLocation();
+        // A projectile is blocked/launched by its incoming flight, not the
+        // shooter's position after release. Vertical/unknown flight has no
+        // horizontal guard or launch direction; never substitute shooter position.
+        const FVector ContactHorizontal=bProjectile?
+            (ImpactDirection.ContainsNaN()?FVector::ZeroVector:ImpactDirection.GetSafeNormal2D()):ToVictim.GetSafeNormal2D();
         APillowWarsWeapon* AttackWeapon=Weapons.FindRef(Cast<ACharacter>(Attacker->GetPawn()));
         const float Resonance=!bProjectile&&AttackWeapon?AttackWeapon->ResonanceAttackPower:0.f;
         bool bBlocked=false;
@@ -490,7 +495,7 @@ bool APillowWarsGameMode::ApplyPillowContact(APlayerController* Attacker,ACharac
         if(AttackWeapon&&!bProjectile){AttackWeapon->bLastContactCritical=bCritical;AttackWeapon->ForceNetUpdate();}
         if(ReplicatedState)
         {
-            const FVector ToAttacker=-ToVictim.GetSafeNormal2D();
+            const FVector ToAttacker=-ContactHorizontal;
             bBlocked=ReplicatedState->bGuarding&&ReplicatedState->Stuffing>=10.f&&FVector::DotProduct(Victim->GetActorForwardVector(),ToAttacker)>.25f;
             if(bBlocked)
             {
@@ -536,7 +541,7 @@ bool APillowWarsGameMode::ApplyPillowContact(APlayerController* Attacker,ACharac
             if(!bProjectile)PracticeContact(Attacker);
         }
         auto* Practice=Cast<APillowWarsPracticeTarget>(Victim);
-        if(!Practice || !Practice->bAnchored)Victim->LaunchCharacter(ToVictim.GetSafeNormal2D() * Knockback + FVector(0, 0, UppercutPower>=0 ? 100+620*Power : 120), true, true);
+        if(!Practice || !Practice->bAnchored)Victim->LaunchCharacter(ContactHorizontal * Knockback + FVector(0, 0, UppercutPower>=0 ? 100+620*Power : 120), true, true);
         if(ReplicatedState){++ReplicatedState->RoundHitsTaken;ReplicatedState->ForceNetUpdate();}
         if(auto* AttackerState=Attacker->GetPlayerState<APillowWarsPlayerState>())
         {++AttackerState->RoundHits;AttackerState->ForceNetUpdate();}

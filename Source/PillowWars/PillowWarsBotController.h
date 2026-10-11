@@ -23,6 +23,7 @@ protected:
     virtual void OnPossess(APawn* PawnToPossess) override;
     virtual void PlayerTick(float DeltaSeconds) override {}
 private:
+    friend class UPillowWarsEditorTestLibrary;
     bool bInitializingPawn = false;
     TWeakObjectPtr<APawn> Opponent;
     FVector Home = FVector::ZeroVector;

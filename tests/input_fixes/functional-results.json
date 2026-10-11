@@ -1,0 +1,1240 @@
+{
+  "results": [
+    {
+      "test": "two possessed players",
+      "passed": true,
+      "detail": [
+        "<PWLocalScreen.MAIN_MENU: 0>",
+        "<PWLocalScreen.MAIN_MENU: 0>"
+      ]
+    },
+    {
+      "test": "host cannot start unready lobby",
+      "passed": true,
+      "detail": "<PWMatchPhase.LOBBY: 0>"
+    },
+    {
+      "test": "ready lobby loads both into game",
+      "passed": true,
+      "detail": [
+        "<PWLocalScreen.IN_GAME: 7>",
+        "<PWLocalScreen.IN_GAME: 7>"
+      ]
+    },
+    {
+      "test": "host W input movement",
+      "passed": true,
+      "detail": {
+        "cm": 229.22563260275183
+      }
+    },
+    {
+      "test": "host jump input",
+      "passed": true,
+      "detail": {
+        "rise": 105.71749022668143
+      }
+    },
+    {
+      "test": "client W input movement",
+      "passed": true,
+      "detail": {
+        "cm": 229.1826853824384
+      }
+    },
+    {
+      "test": "client jump input",
+      "passed": true,
+      "detail": {
+        "rise": 102.66507369058672
+      }
+    },
+    {
+      "test": "no refill away from feathers",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 30.0,
+          "rest": false,
+          "out": false
+        },
+        "Dreamer 2": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 100.0,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "pile roots stay fixed",
+      "passed": true,
+      "detail": [
+        [
+          900.0,
+          400.0,
+          300.0
+        ],
+        [
+          900.0,
+          480.0,
+          300.0
+        ],
+        [
+          900.0,
+          560.0,
+          300.0
+        ]
+      ]
+    },
+    {
+      "test": "three to four ambient piles",
+      "passed": true,
+      "detail": 3
+    },
+    {
+      "test": "nearby pile refills with rest animation",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 38.0,
+          "rest": true,
+          "out": false
+        },
+        "Dreamer 2": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 100.0,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "refill flag replicates",
+      "passed": true,
+      "detail": {
+        "Dreamer 2": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 100.0,
+          "rest": false,
+          "out": false
+        },
+        "Dreamer 1": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 41.20000076293945,
+          "rest": true,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "movement cancels stuffing",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 41.400001525878906,
+          "rest": false,
+          "out": false
+        },
+        "Dreamer 2": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 100.0,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "client refill and animation flag replicate",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "daze": 0.0,
+            "hits": 0,
+            "taken": 0,
+            "stuff": 58.0,
+            "rest": true,
+            "out": false
+          },
+          "Dreamer 2": {
+            "daze": 0.0,
+            "hits": 0,
+            "taken": 0,
+            "stuff": 53.599998474121094,
+            "rest": true,
+            "out": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "daze": 0.0,
+            "hits": 0,
+            "taken": 0,
+            "stuff": 53.599998474121094,
+            "rest": true,
+            "out": false
+          },
+          "Dreamer 1": {
+            "daze": 0.0,
+            "hits": 0,
+            "taken": 0,
+            "stuff": 58.0,
+            "rest": true,
+            "out": false
+          }
+        }
+      }
+    },
+    {
+      "test": "charging cancels refill",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 60.79999923706055,
+          "rest": false,
+          "out": false
+        },
+        "Dreamer 2": {
+          "daze": 0.0,
+          "hits": 0,
+          "taken": 0,
+          "stuff": 54.119998931884766,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "host 0.35s no contact while charging",
+      "passed": true,
+      "detail": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            43.84240313984932,
+            9.649541605255852,
+            57.03370067246805
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        },
+        {
+          "grip": 9.485941632192407e-07,
+          "pillow": [
+            43.78196052406937,
+            34.02169873774854,
+            82.72333356403288
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.72175702579386,
+            59.21607043745401,
+            132.62393481581162
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "test": "host 0.35s released uppercut hits once",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "daze": 0.0,
+            "hits": 1,
+            "taken": 0,
+            "stuff": 87.80000305175781,
+            "rest": false,
+            "out": false
+          },
+          "Dreamer 2": {
+            "daze": 19.062606811523438,
+            "hits": 0,
+            "taken": 1,
+            "stuff": 37.71900177001953,
+            "rest": false,
+            "out": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "daze": 19.062606811523438,
+            "hits": 0,
+            "taken": 1,
+            "stuff": 37.71900177001953,
+            "rest": false,
+            "out": false
+          },
+          "Dreamer 1": {
+            "daze": 0.0,
+            "hits": 1,
+            "taken": 0,
+            "stuff": 87.80000305175781,
+            "rest": false,
+            "out": false
+          }
+        },
+        "attack": 3,
+        "power": 0.1750028282403946
+      }
+    },
+    {
+      "test": "host 0.35s replicated Daze",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 19.062606811523438,
+          "hits": 0,
+          "taken": 1,
+          "stuff": 37.71900177001953,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 19.062606811523438,
+          "hits": 0,
+          "taken": 1,
+          "stuff": 37.71900177001953,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "host 0.35s reachable grip",
+      "passed": true,
+      "detail": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            43.84240313984932,
+            9.649541605255852,
+            57.03370067246805
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        },
+        {
+          "grip": 9.485941632192407e-07,
+          "pillow": [
+            43.78196052406937,
+            34.02169873774854,
+            82.72333356403288
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.72175702579386,
+            59.21607043745401,
+            132.62393481581162
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "test": "host 0.35s recovery grip",
+      "passed": true,
+      "detail": 9.239622045242868e-07
+    },
+    {
+      "test": "host 2.1s no contact while charging",
+      "passed": true,
+      "detail": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.9999981077168,
+            24.823961444787518,
+            196.62390356675618
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        },
+        {
+          "grip": 1.783387688192306e-06,
+          "pillow": [
+            49.00000206966473,
+            -39.55032569834154,
+            96.88047159383197
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.9999938495477,
+            50.89947030165481,
+            173.76859466048128
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "test": "host 2.1s released uppercut hits once",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "daze": 0.0,
+            "hits": 2,
+            "taken": 0,
+            "stuff": 68.0,
+            "rest": false,
+            "out": false
+          },
+          "Dreamer 2": {
+            "daze": 69.06260681152344,
+            "hits": 0,
+            "taken": 2,
+            "stuff": 37.71900177001953,
+            "rest": false,
+            "out": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "daze": 69.06260681152344,
+            "hits": 0,
+            "taken": 2,
+            "stuff": 37.71900177001953,
+            "rest": false,
+            "out": false
+          },
+          "Dreamer 1": {
+            "daze": 0.0,
+            "hits": 2,
+            "taken": 0,
+            "stuff": 68.0,
+            "rest": false,
+            "out": false
+          }
+        },
+        "attack": 3,
+        "power": 1.0
+      }
+    },
+    {
+      "test": "host 2.1s replicated Daze",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 69.06260681152344,
+          "hits": 0,
+          "taken": 2,
+          "stuff": 37.71900177001953,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 69.06260681152344,
+          "hits": 0,
+          "taken": 2,
+          "stuff": 37.71900177001953,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "host 2.1s reachable grip",
+      "passed": true,
+      "detail": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.9999981077168,
+            24.823961444787518,
+            196.62390356675618
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        },
+        {
+          "grip": 1.783387688192306e-06,
+          "pillow": [
+            49.00000206966473,
+            -39.55032569834154,
+            96.88047159383197
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.9999938495477,
+            50.89947030165481,
+            173.76859466048128
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "test": "host 2.1s recovery grip",
+      "passed": true,
+      "detail": 9.239622045242868e-07
+    },
+    {
+      "test": "host full charge stronger than short",
+      "passed": true,
+      "detail": [
+        19.062606811523438,
+        50.0
+      ]
+    },
+    {
+      "test": "client 0.35s no contact while charging",
+      "passed": true,
+      "detail": [
+        {
+          "grip": 9.533759453006496e-07,
+          "pillow": [
+            43.75057534133284,
+            8.662202841538248,
+            55.7880548939884
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            43.7819521913549,
+            34.02054352872947,
+            82.7222107408468
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.32501030578749,
+            58.50720844211629,
+            129.05514510849125
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "test": "client 0.35s released uppercut hits once",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "daze": 22.783641815185547,
+            "hits": 2,
+            "taken": 1,
+            "stuff": 70.12999725341797,
+            "rest": false,
+            "out": false
+          },
+          "Dreamer 2": {
+            "daze": 69.06260681152344,
+            "hits": 1,
+            "taken": 2,
+            "stuff": 87.80000305175781,
+            "rest": false,
+            "out": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "daze": 69.06260681152344,
+            "hits": 1,
+            "taken": 2,
+            "stuff": 87.80000305175781,
+            "rest": false,
+            "out": false
+          },
+          "Dreamer 1": {
+            "daze": 22.783641815185547,
+            "hits": 2,
+            "taken": 1,
+            "stuff": 70.12999725341797,
+            "rest": false,
+            "out": false
+          }
+        },
+        "attack": 3,
+        "power": 0.17500317096710205
+      }
+    },
+    {
+      "test": "client 0.35s replicated Daze",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 22.783641815185547,
+          "hits": 2,
+          "taken": 1,
+          "stuff": 70.12999725341797,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 22.783641815185547,
+          "hits": 2,
+          "taken": 1,
+          "stuff": 70.12999725341797,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "client 0.35s reachable grip",
+      "passed": true,
+      "detail": [
+        {
+          "grip": 9.533759453006496e-07,
+          "pillow": [
+            43.75057534133284,
+            8.662202841538248,
+            55.7880548939884
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            43.7819521913549,
+            34.02054352872947,
+            82.7222107408468
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.32501030578749,
+            58.50720844211629,
+            129.05514510849125
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "test": "client 0.35s recovery grip",
+      "passed": true,
+      "detail": 9.239622045242868e-07
+    },
+    {
+      "test": "client 2.1s no contact while charging",
+      "passed": true,
+      "detail": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.99999864683401,
+            22.363458184106378,
+            197.67652708688223
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            49.000004123604256,
+            -36.70987234544302,
+            94.54069654480438
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.99999348209027,
+            50.35770009630298,
+            174.62057181908366
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "test": "client 2.1s released uppercut hits once",
+      "passed": true,
+      "detail": {
+        "server": {
+          "Dreamer 1": {
+            "daze": 72.78364562988281,
+            "hits": 2,
+            "taken": 2,
+            "stuff": 70.12999725341797,
+            "rest": false,
+            "out": false
+          },
+          "Dreamer 2": {
+            "daze": 69.06260681152344,
+            "hits": 2,
+            "taken": 2,
+            "stuff": 68.0,
+            "rest": false,
+            "out": false
+          }
+        },
+        "client": {
+          "Dreamer 2": {
+            "daze": 69.06260681152344,
+            "hits": 2,
+            "taken": 2,
+            "stuff": 68.0,
+            "rest": false,
+            "out": false
+          },
+          "Dreamer 1": {
+            "daze": 72.78364562988281,
+            "hits": 2,
+            "taken": 2,
+            "stuff": 70.12999725341797,
+            "rest": false,
+            "out": false
+          }
+        },
+        "attack": 3,
+        "power": 1.0
+      }
+    },
+    {
+      "test": "client 2.1s replicated Daze",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 72.78364562988281,
+          "hits": 2,
+          "taken": 2,
+          "stuff": 70.12999725341797,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 72.78364562988281,
+          "hits": 2,
+          "taken": 2,
+          "stuff": 70.12999725341797,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "client 2.1s reachable grip",
+      "passed": true,
+      "detail": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.99999864683401,
+            22.363458184106378,
+            197.67652708688223
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            49.000004123604256,
+            -36.70987234544302,
+            94.54069654480438
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.99999348209027,
+            50.35770009630298,
+            174.62057181908366
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "test": "client 2.1s recovery grip",
+      "passed": true,
+      "detail": 9.239622045242868e-07
+    },
+    {
+      "test": "client full charge stronger than short",
+      "passed": true,
+      "detail": [
+        22.783641815185547,
+        50.000003814697266
+      ]
+    },
+    {
+      "test": "host tap variant 2 one hit and agreement",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 94.06260681152344,
+          "hits": 2,
+          "taken": 3,
+          "stuff": 74.14099884033203,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 94.06260681152344,
+          "hits": 2,
+          "taken": 3,
+          "stuff": 74.14099884033203,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "host tap variant 0 one hit and agreement",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 100.0,
+          "hits": 2,
+          "taken": 4,
+          "stuff": 74.14099884033203,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 100.0,
+          "hits": 2,
+          "taken": 4,
+          "stuff": 74.14099884033203,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "host tap variant 1 one hit and agreement",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 100.0,
+          "hits": 2,
+          "taken": 5,
+          "stuff": 74.14099884033203,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 100.0,
+          "hits": 2,
+          "taken": 5,
+          "stuff": 74.14099884033203,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "host cycles all three tap variants",
+      "passed": true,
+      "detail": [
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "test": "client tap variant 0 one hit and agreement",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 3,
+          "stuff": 92.0,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 3,
+          "stuff": 92.0,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "client tap variant 1 one hit and agreement",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 4,
+          "stuff": 92.0,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 4,
+          "stuff": 92.0,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "client tap variant 2 one hit and agreement",
+      "passed": true,
+      "detail": {
+        "server": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 5,
+          "stuff": 92.0,
+          "rest": false,
+          "out": false
+        },
+        "client": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 5,
+          "stuff": 92.0,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "client cycles all three tap variants",
+      "passed": true,
+      "detail": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "test": "miss has no victim hit",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 5,
+          "stuff": 92.0,
+          "rest": false,
+          "out": false
+        },
+        "Dreamer 2": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 5,
+          "stuff": 84.0,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "rapid input respects cooldown",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "test": "E places replicated pillow cover",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "test": "blocking geometry prevents melee through it",
+      "passed": true,
+      "detail": {
+        "Dreamer 1": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 5,
+          "stuff": 67.0,
+          "rest": false,
+          "out": false
+        },
+        "Dreamer 2": {
+          "daze": 100.0,
+          "hits": 5,
+          "taken": 5,
+          "stuff": 84.0,
+          "rest": false,
+          "out": false
+        }
+      }
+    },
+    {
+      "test": "client facing guard absorbs host attack",
+      "passed": true,
+      "detail": {
+        "guards": 1,
+        "stuffing": 82.33100128173828
+      }
+    },
+    {
+      "test": "client can move during charge",
+      "passed": true,
+      "detail": 204.25337975680793
+    },
+    {
+      "test": "throw input spawns projectile",
+      "passed": true,
+      "detail": {
+        "polls": 11
+      }
+    },
+    {
+      "test": "thrown pillow accelerates downward",
+      "passed": true,
+      "detail": {
+        "start": [
+          -26.927165420583115,
+          -4.000000000000007,
+          380.01798633163145
+        ],
+        "end": [
+          99.35716719263668,
+          -4.000000000000007,
+          410.913308064146
+        ],
+        "vz": [
+          296.98505878186825,
+          166.26874193287495
+        ]
+      }
+    },
+    {
+      "test": "throw cannot bypass 15s recharge",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "test": "elimination and winner agree",
+      "passed": true,
+      "detail": {
+        "server": "Dreamer 1 wins! Round score 1/3 | Host: R or everyone votes",
+        "client": "Dreamer 1 wins! Round score 1/3 | Host: R or everyone votes"
+      }
+    },
+    {
+      "test": "one client rematch vote does not force reset",
+      "passed": true,
+      "detail": "Dreamer 1 wins! Round score 1/3 | Host: R or everyone votes"
+    },
+    {
+      "test": "host reset respawns both",
+      "passed": true,
+      "detail": [
+        "<PWLocalScreen.IN_GAME: 7>",
+        "<PWLocalScreen.IN_GAME: 7>"
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "attacker": "host",
+      "hold": 0.35,
+      "daze": 19.062606811523438,
+      "charged": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            43.84240313984932,
+            9.649541605255852,
+            57.03370067246805
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        },
+        {
+          "grip": 9.485941632192407e-07,
+          "pillow": [
+            43.78196052406937,
+            34.02169873774854,
+            82.72333356403288
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.72175702579386,
+            59.21607043745401,
+            132.62393481581162
+          ],
+          "charge": 26.036449432373047,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "attacker": "host",
+      "hold": 2.1,
+      "daze": 50.0,
+      "charged": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.9999981077168,
+            24.823961444787518,
+            196.62390356675618
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        },
+        {
+          "grip": 1.783387688192306e-06,
+          "pillow": [
+            49.00000206966473,
+            -39.55032569834154,
+            96.88047159383197
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.9999938495477,
+            50.89947030165481,
+            173.76859466048128
+          ],
+          "charge": 28.367647171020508,
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "attacker": "client",
+      "hold": 0.35,
+      "daze": 22.783641815185547,
+      "charged": [
+        {
+          "grip": 9.533759453006496e-07,
+          "pillow": [
+            43.75057534133284,
+            8.662202841538248,
+            55.7880548939884
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            43.7819521913549,
+            34.02054352872947,
+            82.7222107408468
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.32501030578749,
+            58.50720844211629,
+            129.05514510849125
+          ],
+          "charge": 32.45020294189453,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "attacker": "client",
+      "hold": 2.1,
+      "daze": 50.000003814697266,
+      "charged": [
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.99999864683401,
+            22.363458184106378,
+            197.67652708688223
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            49.000004123604256,
+            -36.70987234544302,
+            94.54069654480438
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        },
+        {
+          "grip": 9.239622045242868e-07,
+          "pillow": [
+            48.99999348209027,
+            50.35770009630298,
+            174.62057181908366
+          ],
+          "charge": 34.766502380371094,
+          "hits": 1
+        }
+      ]
+    }
+  ],
+  "error": null
+}

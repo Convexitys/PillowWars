@@ -1,6 +1,10 @@
 # Verification history
 
-## Current: v0.5.2 Stuffing Candidate, October 8, 2026
+## Current: v0.5.3 Input Fix Candidate, October 11, 2026
+
+See [six fixes, artifact identity, results and open checks](CANDIDATE-0.5.3.md). Five suites passed 175/175 current automated assertions: focused 47, Practice 14, resource 21, two-player functional 57, and health/winner/rematch 36. Tests ran in actual PIE worlds on one Windows laptop, using queued production input and explicitly controlled fixtures. Editor and Windows package builds passed; a packaged D3D11 offscreen startup/map-load/quit passed. This is not human visual review, packaged multiplayer, custom-port connectivity, or separate-PC validation. Source scripts and final reports are in `tests/input_fixes/`.
+
+## Historical: v0.5.2 Stuffing Candidate, October 8, 2026
 
 See [candidate rules, exact artifact identity, results and open checks](CANDIDATE-0.5.2.md). Final resource/practice/health/functional/head-motion suites passed 146/146 automated Unreal checks. Those results are separate from the historical counts below. No new 8/10-player or independent-PC verification is claimed. Normal-speed visual review and the elapsed-carry failure/retry acceptance cases remain open.
 

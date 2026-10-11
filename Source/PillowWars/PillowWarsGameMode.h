@@ -75,6 +75,7 @@ public:
 protected:
     UPROPERTY(EditDefaultsOnly, Category="Pillow Wars") float SwingCooldown = 0.65f;
 private:
+    friend class UPillowWarsEditorTestLibrary;
     TMap<TObjectPtr<ACharacter>, FPillowFighterState> FighterStates;
     TMap<TObjectPtr<APlayerController>, float> LastSwingTime;
     TMap<TObjectPtr<APlayerController>, float> LastCombatAction;

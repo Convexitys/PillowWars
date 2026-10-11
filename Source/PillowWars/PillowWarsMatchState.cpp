@@ -130,7 +130,7 @@ void APillowWarsHUD::DrawHUD()
             DrawText(TEXT("HOST IPv4 ADDRESS"),FLinearColor(.78f,.85f,1),W*.34f,H*.40f,nullptr,.75f*S);
             DrawRect(FLinearColor(.02f,.035f,.08f,.95f),W*.29f,H*.46f,W*.42f,58*S);
             DrawText(PWController->GetJoinAddress()+TEXT("_"),FLinearColor(.55f,.95f,1),W*.34f,H*.475f,nullptr,1.05f*S);
-            DrawText(TEXT("Type the host address with number keys and periods."),FLinearColor(.82f,.86f,.96f),W*.25f,H*.58f,nullptr,.70f*S);
+            DrawText(TEXT("Numbers + periods; Tab adds : for an optional port."),FLinearColor(.82f,.86f,.96f),W*.25f,H*.58f,nullptr,.70f*S);
             DrawText(TEXT("Enter: connect     Backspace: edit     Esc: back"),FLinearColor(.65f,1,.75f),W*.29f,H*.67f,nullptr,.70f*S);
             DrawText(TEXT("Same computer: 127.0.0.1     Local network: 192.168.1.20"),FLinearColor(.73f,.79f,.90f),W*.20f,H*.76f,nullptr,.65f*S);
         }
@@ -203,7 +203,7 @@ void APillowWarsHUD::DrawHUD()
     DrawText(TEXT("PILLOW WARS"),FLinearColor(.55f,.9f,1),30*S,23*S,nullptr,1.32f*S);
     DrawText(FString::Printf(TEXT("DREAM RESONANCE  |  ROUND %d"),State->RoundNumber),FLinearColor(.75f,.65f,1),30*S,49*S,nullptr,.78f*S);
     DrawText(TEXT("WASD / LS move  |  Space / A jump  |  F / X attack"),FLinearColor::White,30*S,76*S,nullptr,.70f*S);
-    DrawText(TEXT("G / LB guard  |  E / LT pillow cover  |  Q / RB throw"),FLinearColor(.82f,.86f,.95f),30*S,99*S,nullptr,.60f*S);
+    DrawText(TEXT("G guard | E cover | V reclaim | B / Y variant | Q throw"),FLinearColor(.82f,.86f,.95f),30*S,99*S,nullptr,.58f*S);
 
     const APillowWarsPlayerState* LocalState=PlayerOwner?PlayerOwner->GetPlayerState<APillowWarsPlayerState>():nullptr;
     const float Daze=LocalState?LocalState->Daze:0;

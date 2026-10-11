@@ -37,6 +37,7 @@ public:
     UFUNCTION(BlueprintCallable) void RequestRestart() { RestartPressed(); }
     UFUNCTION(BlueprintPure) EPWLocalScreen GetLocalScreen() const { return LocalScreen; }
     UFUNCTION(BlueprintPure) FString GetJoinAddress() const { return JoinAddress; }
+    UFUNCTION(BlueprintPure) static bool IsValidJoinAddress(const FString& Address);
     int32 GetMenuIndex() const { return MenuIndex; }
     UFUNCTION(BlueprintPure) float GetMasterVolume() const { return MasterVolume; }
     UFUNCTION(BlueprintPure) float GetLookSensitivity() const { return LookSensitivity; }
@@ -115,9 +116,12 @@ private:
     UFUNCTION(Server,Reliable) void ServerStartFrontendMatch(bool bPractice);
     UFUNCTION(Server,Reliable) void ServerReturnToLobby();
     void SwingPressed();
+    void ChargePressed();
+    bool bLocalChargeHeld=false;
     void SwingReleased();
     UFUNCTION(Server, Reliable) void ServerBeginCharge();
     UFUNCTION(Server, Reliable) void ServerReleaseCharge();
+    UFUNCTION(Server, Reliable) void ServerCancelCharge();
     void RestartPressed();
     void CyclePressed();
     void ThrowPressed();

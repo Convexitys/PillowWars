@@ -105,7 +105,7 @@ APillowWarsStuffingPickup* APillowWarsGameMode::FindRecoveryPile(APlayerControll
     for(const auto& Pair:PileBook)
     {
         auto* Pile=Pair.Key.Get();if(!Pile||!Pile->Registered||Pile->IsActorBeingDestroyed()||Pair.Value.Units<=0)continue;
-        if(FVector::Dist2D(Pawn->GetActorLocation(),Pile->GetActorLocation())>115.f||FMath::Abs(Pawn->GetActorLocation().Z-Pile->GetActorLocation().Z)>160.f)continue;
+        if(FVector::Dist2D(Pawn->GetActorLocation(),Pile->GetActorLocation())>115.f||FMath::Abs(Pawn->GetActorLocation().Z-Pile->GetActorLocation().Z)>APillowWarsStuffingPickup::RecoveryVerticalLimit)continue;
         FHitResult Hit;FCollisionQueryParams Query;Query.AddIgnoredActor(Pawn);Query.AddIgnoredActor(Pile);
         if(GetWorld()->LineTraceSingleByChannel(Hit,Pawn->GetActorLocation(),Pile->GetActorLocation()+FVector(0,0,15),ECC_Visibility,Query))continue;
         if(Pair.Value.Serial<Serial){Best=Pile;Serial=Pair.Value.Serial;}
@@ -158,7 +158,8 @@ void APillowWarsGameMode::SettleResources(APlayerController* Player,double Now)
             if(Empty)Pile->Destroy();
             if(Held<8000&&Held+Taken>=8000)
                 if(auto* C=Cast<APillowWarsPlayerController>(Player))C->SendActionHint(ResourceGeneration,TEXT("affordable"),TEXT("Basic attack affordable. Charged attacks cost more."));
-            if(Taken>0&&PracticeSteps.FindRef(Player)==2&&Held+Taken>=8000)PracticeProgress(Player,3);
+            const int32* Step=PracticeSteps.Find(Player);
+            if(Taken>0&&Step&&(*Step==1||*Step==2)&&Held+Taken>=8000)PracticeProgress(Player,3);
         }
     }
     else if(!Continuous||State->bGuarding||Held>=100000)Clock.RefillCarry.Reset();

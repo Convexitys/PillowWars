@@ -116,7 +116,8 @@ void APillowWarsBotController::Think(float Now)
         for (TActorIterator<APillowWarsStuffingPickup> It(GetWorld()); It; ++It)
         {
             const float Distance = FVector::Dist(Position, It->GetActorLocation());
-            if (It->RemainingStuffing > 0.f && Distance < PileDistance && CanSee(*It)) { Pile = *It; PileDistance = Distance; }
+            if (FMath::Abs(Position.Z-It->GetActorLocation().Z)<=APillowWarsStuffingPickup::RecoveryVerticalLimit &&
+                It->RemainingStuffing > 0.f && Distance < PileDistance && CanSee(*It)) { Pile = *It; PileDistance = Distance; }
         }
     FVector Desired = FVector::ZeroVector;
     bool bThrow = false;

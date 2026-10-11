@@ -16,4 +16,8 @@ public:
     UFUNCTION(BlueprintCallable) static void QueuePlayerKey(APlayerController* Player, FName Key, float HoldSeconds=0.1f);
     UFUNCTION(BlueprintCallable) static void ResourceFixture(APlayerController* Player,float Stuffing,bool DisableAmbient=false);
     UFUNCTION(BlueprintCallable) static void ResourceCallback(AActor* Object,FName Reason);
+    UFUNCTION(BlueprintCallable) static AActor* ResourcePileFixture(APlayerController* Player,FVector Location,float Contents);
+    UFUNCTION(BlueprintCallable) static AActor* ProjectileFlightFixture(APlayerController* Player,FVector Location,FVector Direction);
+    UFUNCTION(BlueprintCallable) static bool ProjectileContactFixture(APlayerController* Player,ACharacter* Victim,FVector Direction);
+    UFUNCTION(BlueprintCallable) static void BotThinkFixture(APlayerController* Player);
 };

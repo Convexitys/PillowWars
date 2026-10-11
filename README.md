@@ -2,20 +2,20 @@
 
 A student-built Unreal Engine 5.5.3 party-combat prototype: small pajama ninjas, oversized pillows, spring-neck bobbleheads, and a bedroom turned into a battleground.
 
-![Historical v0.3.0 Practice gameplay; not a v0.5.2 visual review](docs/images/gameplay.png)
+![Historical v0.3.0 Practice gameplay; not a v0.5.3 visual review](docs/images/gameplay.png)
 
-Current source: **v0.5.2-StuffingCandidate**, October 8, 2026. Use the matching candidate ZIP below for reviewing the new resource rules; the older v0.3.0 release remains available for comparison. This is a test candidate, not a claim of finished balance or visual polish.
+Current source: **v0.5.3-InputFixCandidate**, October 11, 2026. This update fixes six input, recovery, and projectile-direction defects. Use the matching candidate ZIP below; older releases remain available for comparison. This is a test candidate, not a claim of finished balance or visual polish. See [what changed and what was tested](docs/CANDIDATE-0.5.3.md).
 
 ## Play without Unreal
 
-**[Download Pillow Wars for Windows - v0.5.2 Stuffing Candidate (451.5 MB)](https://github.com/Convexitys/PillowWars/releases/download/v0.5.2/PillowWars-v0.5.2-StuffingCandidate-Windows.zip)**
+**[Download Pillow Wars for Windows - v0.5.3 Input Fix Candidate (451.5 MB)](https://github.com/Convexitys/PillowWars/releases/download/v0.5.3/PillowWars-v0.5.3-InputFixCandidate-Windows.zip)**
 
 1. Download the complete game ZIP above. GitHub's green **Code > Download ZIP** is source code, not the playable game.
 2. Extract the entire ZIP, then open the `Windows` folder and run `PillowWars.exe`.
 3. Keep its `Engine` and `PillowWars` folders beside it. The EXE alone is not the game.
-4. Select **Practice** for solo play. Read `READ_ME.md` and `Documentation` for controls, rules, and testing limits.
+4. Select **Practice** for solo play. Read the ZIP's root `README.md` for controls, fixes, and testing limits.
 
-[Candidate release notes and checksum](https://github.com/Convexitys/PillowWars/releases/tag/v0.5.2). Exact ZIP: **451,524,234 bytes**, SHA-256 `8c255bbdd4e7c1a57be21074b9553f1bdff898240e32b63673b07c80a90631d6`. Artifact integrity is separate from gameplay testing. Documentation inside the ZIP was captured before publication; its not-yet-published status line is historical. This release page is the publication status.
+[Candidate release notes and checksum](https://github.com/Convexitys/PillowWars/releases/tag/v0.5.3). Exact ZIP: **451,519,883 bytes**, SHA-256 `705e2017d731d1d71a9c19c8e22b5096af9d33950352563e36d65ddbbf1603a5`. Artifact integrity is separate from gameplay testing. The ZIP's local-candidate status line was captured before publication; this release page is the publication status.
 
 Windows 64-bit only. A compatible graphics card and Microsoft Visual C++ runtime are required. The build includes the Unreal prerequisite installer. No Unreal Editor installation is needed to play. macOS, Linux, mobile, and browser play are not supported by this Windows build. The executable is unsigned; no code-signing certificate is included.
 
@@ -40,10 +40,11 @@ This repository contains the custom C++ gameplay source, sanitized default confi
 | Three tap swings / charged uppercut | Tap F / hold F and release |
 | Guard / temporary pillow cover / throw | G / E / Q |
 | Reclaim nearby owned cover / optional solo exercise | V / T in Practice |
+| Change gameplay appearance intentionally | B (gamepad Y) |
 | Pause / back | Esc |
 | Lobby character selection / ready | C / Enter |
 | Open LAN host / start match | H to open host; H again after both/all players are ready |
-| Join by IPv4 address | Join Party menu, or J in lobby |
+| Join by IPv4 address | Join Party menu, or J in lobby; Tab inserts : for an optional port |
 | Round reset / rematch vote | R |
 
 For solo testing, select **Practice**. A labeled character dummy reports hits and Daze; it does not count as a player. Gamepad bindings are shown in-game but have not received the same fresh physical-controller QA as keyboard input.
@@ -54,13 +55,13 @@ Designed around a listen host and direct IPv4 joining. Use the same game version
 
 Host: open Play / Party Lobby and press **H** to open port 7777. Share your LAN IPv4 address privately with the other tester. The other tester uses **Join Party** and that address. Each player presses **Enter** to ready up; the host presses **H** again to start. Hosting alone does not start a match; use Practice for solo play. Packaged two-player matches and independent-PC networking remain unverified.
 
-Current v0.5.2 verification: **146/146 automated Unreal checks** across resources (21), optional solo exercise (9), health/costs/criticals (36), existing two-player functional regression (57), and head-motion regression (23). Network tests ran as listen host/client worlds in one editor process on one laptop; queued production input events and scripted fixtures were used. A separate C++ test passed 14 arithmetic assertions. Editor build and Windows packaging passed; a graphics-enabled unattended packaged startup/quit passed with D3D11/SM5 fallback. Headless NullRHI exit still fails with `0xC0000005`, also reproduced with the older v0.5.1 executable; cause unknown. Fresh 8/10-player, separate-PC, normal-speed visual, novice and long-match tests are **not** claimed. Historical September results are retained separately in [test evidence and limits](docs/TESTING.md).
+Current v0.5.3 verification: **175/175 automated Unreal assertions** across focused input/direction/bot checks (47), optional solo exercise (14), resource accounting (21), two-player functional regression (57), and health/costs/criticals/elimination/rematch (36). These are five suites, not 175 play sessions. Network tests ran as listen host/client worlds in one editor process on one laptop; queued production input events and scripted fixtures were used. Native contact/bot fixtures are explicitly labelled; one focused test observes an actual launched projectile collision. Editor build, Windows build/cook/package, and a graphics-enabled offscreen D3D11 startup/quit passed. The previous candidate's unresolved headless packaged NullRHI exit failure was not retested or fixed in this update. Current custom-port connectivity, packaged two-player play, 8/10-player, separate-PC, head-motion, normal-speed visual, novice and long-match tests are **not** claimed. Prior candidate and September results remain in [test evidence and limits](docs/TESTING.md).
 
 ## Implementation
 
 Unreal C++, replicated player/match state, server-authoritative contact sweeps and damage, procedural poseable-mesh animation, generated character geometry, and editor-Python test/capture scripts. Original character and furniture asset preparation used Python and Blender.
 
-Start with `PillowWarsGameMode.cpp` (rules/combat), `PillowWarsResources.cpp` and `PillowWarsResourceMath.h` (server resource ledger/time carry), `PillowWarsWeapon.cpp` (pose/contact/replication), `PillowWarsPlayerController.cpp` (input/frontend), and `PillowWarsMatchState.cpp` (state/HUD) under `Source/PillowWars/`. Tests and final result JSON are in `tests/stuffing_candidate/`.
+Start with `PillowWarsGameMode.cpp` (rules/combat), `PillowWarsResources.cpp` and `PillowWarsResourceMath.h` (server resource ledger/time carry), `PillowWarsWeapon.cpp` (pose/contact/replication), `PillowWarsPlayerController.cpp` (input/frontend), and `PillowWarsMatchState.cpp` (state/HUD) under `Source/PillowWars/`. Current tests and final result JSON are in `tests/input_fixes/`; prior evidence is preserved in `tests/stuffing_candidate/`.
 
 ## Submission
 

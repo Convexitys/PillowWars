@@ -1,0 +1,363 @@
+{
+  "results": [
+    {
+      "test": "Join input constructs IPv4:7778",
+      "passed": true,
+      "detail": "127.0.0.1:7778"
+    },
+    {
+      "test": "empty port rejected",
+      "passed": true,
+      "detail": "127.0.0.1:"
+    },
+    {
+      "test": "invalid Enter remains in Join Party",
+      "passed": true,
+      "detail": "<PWLocalScreen.JOIN_PARTY: 9>"
+    },
+    {
+      "test": "65536 rejected after ordinary input",
+      "passed": true,
+      "detail": "127.0.0.1:65536"
+    },
+    {
+      "test": "deletion across separator preserves default IPv4",
+      "passed": true,
+      "detail": "127.0.0.1"
+    },
+    {
+      "test": "native parser 192.168.1.20",
+      "passed": true,
+      "detail": true
+    },
+    {
+      "test": "native parser 192.168.1.20:1",
+      "passed": true,
+      "detail": true
+    },
+    {
+      "test": "native parser 192.168.1.20:65535",
+      "passed": true,
+      "detail": true
+    },
+    {
+      "test": "native parser 256.1.1.1",
+      "passed": true,
+      "detail": false
+    },
+    {
+      "test": "native parser 1.2.3.4:0",
+      "passed": true,
+      "detail": false
+    },
+    {
+      "test": "native parser 1.2.3.4::7778",
+      "passed": true,
+      "detail": false
+    },
+    {
+      "test": "native parser 1.2.3",
+      "passed": true,
+      "detail": false
+    },
+    {
+      "test": "Join Escape returns main menu",
+      "passed": true,
+      "detail": "<PWLocalScreen.MAIN_MENU: 0>"
+    },
+    {
+      "test": "lobby V retains character selection",
+      "passed": true,
+      "detail": "<PWLocalScreen.CHARACTER_SELECT: 2>"
+    },
+    {
+      "test": "host creates one cover",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "test": "host V reclaims without appearance cycle",
+      "passed": true,
+      "detail": {
+        "variant": 4,
+        "expected": 4
+      }
+    },
+    {
+      "test": "host V without cover no cycle or credit",
+      "passed": true,
+      "detail": {
+        "stuffing": 75.0,
+        "variant": 4
+      }
+    },
+    {
+      "test": "host B explicitly cycles without cover",
+      "passed": true,
+      "detail": 5
+    },
+    {
+      "test": "host Pause F and gamepad X do not attack",
+      "passed": true,
+      "detail": {
+        "sequence": 0,
+        "charge": -100.0,
+        "stuffing": 100.0
+      }
+    },
+    {
+      "test": "host Settings from Pause blocks attack/cycle/reclaim",
+      "passed": true,
+      "detail": {
+        "screen": "<PWLocalScreen.SETTINGS: 3>",
+        "sequence": 0
+      }
+    },
+    {
+      "test": "host normal charge begins",
+      "passed": true,
+      "detail": 22.027788162231445
+    },
+    {
+      "test": "host Pause cancels held charge without payment",
+      "passed": true,
+      "detail": {
+        "charge": -100.0,
+        "sequence": 0
+      }
+    },
+    {
+      "test": "host late cancelled physical release causes no resumed swing",
+      "passed": true,
+      "detail": {
+        "sequence": 0,
+        "stuffing": 100.0
+      }
+    },
+    {
+      "test": "host fresh F press attacks after resume",
+      "passed": true,
+      "detail": {
+        "sequence": 1,
+        "stuffing": 92.0
+      }
+    },
+    {
+      "test": "host server owner state reaches client",
+      "passed": true,
+      "detail": {
+        "local": 92.0,
+        "authority": 92.0
+      }
+    },
+    {
+      "test": "client creates one cover",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "test": "client V reclaims without appearance cycle",
+      "passed": true,
+      "detail": {
+        "variant": 5,
+        "expected": 5
+      }
+    },
+    {
+      "test": "client V without cover no cycle or credit",
+      "passed": true,
+      "detail": {
+        "stuffing": 75.0,
+        "variant": 5
+      }
+    },
+    {
+      "test": "client B explicitly cycles without cover",
+      "passed": true,
+      "detail": 6
+    },
+    {
+      "test": "client Pause F and gamepad X do not attack",
+      "passed": true,
+      "detail": {
+        "sequence": 0,
+        "charge": -100.0,
+        "stuffing": 100.0
+      }
+    },
+    {
+      "test": "client Settings from Pause blocks attack/cycle/reclaim",
+      "passed": true,
+      "detail": {
+        "screen": "<PWLocalScreen.SETTINGS: 3>",
+        "sequence": 0
+      }
+    },
+    {
+      "test": "client normal charge begins",
+      "passed": true,
+      "detail": 30.54860496520996
+    },
+    {
+      "test": "client Pause cancels held charge without payment",
+      "passed": true,
+      "detail": {
+        "charge": -100.0,
+        "sequence": 0
+      }
+    },
+    {
+      "test": "client late cancelled physical release causes no resumed swing",
+      "passed": true,
+      "detail": {
+        "sequence": 0,
+        "stuffing": 100.0
+      }
+    },
+    {
+      "test": "client fresh F press attacks after resume",
+      "passed": true,
+      "detail": {
+        "sequence": 1,
+        "stuffing": 92.0
+      }
+    },
+    {
+      "test": "client server owner state reaches client",
+      "passed": true,
+      "detail": {
+        "local": 92.0,
+        "authority": 92.0
+      }
+    },
+    {
+      "test": "projectile direction shooter 500 facing 0",
+      "passed": true,
+      "detail": {
+        "guards": 1,
+        "velocity": [
+          0.0,
+          0.0,
+          -94.53929665964097
+        ],
+        "displacement": [
+          -4.410843607443457,
+          0.0,
+          1.5925135239265842
+        ]
+      }
+    },
+    {
+      "test": "projectile direction shooter 500 facing 180",
+      "passed": true,
+      "detail": {
+        "guards": 0,
+        "velocity": [
+          -150.45484913233668,
+          0.0,
+          -94.42662249784917
+        ],
+        "displacement": [
+          -30.535779457521933,
+          0.0,
+          1.598720980646135
+        ]
+      }
+    },
+    {
+      "test": "projectile direction shooter -500 facing 0",
+      "passed": true,
+      "detail": {
+        "guards": 1,
+        "velocity": [
+          0.0,
+          0.0,
+          -94.37825873028487
+        ],
+        "displacement": [
+          -6.730847497436131,
+          0.0,
+          1.6013831717219773
+        ]
+      }
+    },
+    {
+      "test": "projectile direction shooter -500 facing 180",
+      "passed": true,
+      "detail": {
+        "guards": 0,
+        "velocity": [
+          -218.4948978656903,
+          0.0,
+          -94.3808334460482
+        ],
+        "displacement": [
+          -39.03199320222052,
+          0.0,
+          1.601241480465319
+        ]
+      }
+    },
+    {
+      "test": "vertical/zero projectile has no invented horizontal guard or launch <Struct 'Vector' (0x0000028FCE9FCB50) {x: 0.000000, y: 0.000000, z: -1.000000}>",
+      "passed": true,
+      "detail": {
+        "velocity": [
+          0.0,
+          0.0,
+          -95.8349792426452
+        ],
+        "guards": 0
+      }
+    },
+    {
+      "test": "vertical/zero projectile has no invented horizontal guard or launch <Struct 'Vector' (0x0000028FCE9FCBA0) {x: 0.000000, y: 0.000000, z: 0.000000}>",
+      "passed": true,
+      "detail": {
+        "velocity": [
+          0.0,
+          0.0,
+          -94.37894233968109
+        ],
+        "guards": 0
+      }
+    },
+    {
+      "test": "actual projectile OnImpact guards by flight not owner location",
+      "passed": true,
+      "detail": {
+        "hits": 1,
+        "guards": 1
+      }
+    },
+    {
+      "test": "bot chooses eligible alternative instead of visible high pile",
+      "passed": true,
+      "detail": {
+        "decision": "Seeking feathers",
+        "steering": "<Struct 'Vector' (0x0000052C9A0D0AE8) {x: 0.000000, y: 1.000000, z: 0.000000}>"
+      }
+    },
+    {
+      "test": "bot falls back rather than restuff at ineligible high pile",
+      "passed": true,
+      "detail": "Approaching opponent"
+    },
+    {
+      "test": "same-level bot rest transfers registered finite pile",
+      "passed": true,
+      "detail": {
+        "before": 20.0,
+        "after": 28.0,
+        "selected_decision": "Restuffing beside feathers"
+      }
+    },
+    {
+      "test": "focused fixtures preserve resource conservation",
+      "passed": true,
+      "detail": "{\"generation\":1,\"sequence\":775,\"open\":true,\"held\":209997,\"loose\":0,\"cover\":0,\"loss\":430416,\"initial\":300000,\"supply\":340413,\"residual\":0,\"ambient\":0,\"funded\":0}"
+    }
+  ],
+  "error": null,
+  "configuration": "UE5.5.3 listen host, client and server bot in one editor process; normal queued input; scripted positions/resources; direction receiver and bot decision fixtures explicitly injected; one actual projectile collision"
+}

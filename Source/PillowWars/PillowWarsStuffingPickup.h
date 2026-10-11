@@ -11,6 +11,7 @@ class PILLOWWARS_API APillowWarsStuffingPickup : public AActor
 {
     GENERATED_BODY()
 public:
+    static constexpr float RecoveryVerticalLimit=160.f;
     APillowWarsStuffingPickup();
     virtual void Tick(float DeltaSeconds) override;
     virtual void EndPlay(const EEndPlayReason::Type Reason) override;

@@ -20,4 +20,5 @@ private:
     UPROPERTY() TObjectPtr<UProjectileMovementComponent> Movement;
     UFUNCTION() void OnImpact(UPrimitiveComponent* Component,AActor* Other,UPrimitiveComponent* OtherComponent,FVector Impulse,const FHitResult& Hit);
     bool bImpacted=false;
+    FVector LastFlightDirection=FVector::ZeroVector;
 };

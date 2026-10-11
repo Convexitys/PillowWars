@@ -46,7 +46,7 @@ void APillowWarsPlayerController::ClientPracticeStep_Implementation(uint32 Gener
     PracticeSequence=Sequence;PracticeStep=Step;
 }
 void APillowWarsPlayerController::PracticePressed(){if(LocalScreen==EPWLocalScreen::InGame)ServerPracticeChallenge();}
-void APillowWarsPlayerController::ReclaimPressed(){if(LocalScreen==EPWLocalScreen::InGame)ServerReclaimCover();}
+void APillowWarsPlayerController::ReclaimPressed(){if(LocalScreen==EPWLocalScreen::Lobby)OpenCharacterSelect();else if(LocalScreen==EPWLocalScreen::InGame)ServerReclaimCover();}
 void APillowWarsPlayerController::ServerPracticeChallenge_Implementation(){if(auto* Mode=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())Mode->TogglePracticeChallenge(this);}
 void APillowWarsPlayerController::ServerReclaimCover_Implementation(){if(auto* Mode=GetWorld()->GetAuthGameMode<APillowWarsGameMode>())Mode->ReclaimCover(this);}
 
@@ -146,6 +146,7 @@ void APillowWarsPlayerController::SetLocalScreen(EPWLocalScreen NewScreen)
     const bool bGameplay=NewScreen==EPWLocalScreen::InGame;
     if(!bGameplay)
     {
+        if(bLocalChargeHeld){bLocalChargeHeld=false;ServerCancelCharge();}
         bMoveForwardKeyDown=false;bMoveBackwardKeyDown=false;
         bMoveLeftKeyDown=false;bMoveRightKeyDown=false;
         GamepadMoveForward=0.f;GamepadMoveRight=0.f;
@@ -331,20 +332,15 @@ void APillowWarsPlayerController::JoinPressed()
 {
     if(LocalScreen==EPWLocalScreen::Lobby)JoinAddressPressed();
 }
-void APillowWarsPlayerController::ConnectToHost()
+bool APillowWarsPlayerController::IsValidJoinAddress(const FString& Address)
 {
-    if(JoinAddress.IsEmpty() || JoinAddress.Len()>21)
-    {
-        FrontendStatus=TEXT("Enter a host IPv4 address, then press Enter.");
-        return;
-    }
+    if(Address.IsEmpty() || Address.Len()>21)return false;
     TArray<FString> HostAndPort;
-    JoinAddress.ParseIntoArray(HostAndPort,TEXT(":"),false);
+    Address.ParseIntoArray(HostAndPort,TEXT(":"),false);
     TArray<FString> Octets;
     if(HostAndPort.Num()<1 || HostAndPort.Num()>2)
     {
-        FrontendStatus=TEXT("That address is not valid. Use 192.168.1.20 (or add :7777).");
-        return;
+        return false;
     }
     HostAndPort[0].ParseIntoArray(Octets,TEXT("."),false);
     bool bValid=Octets.Num()==4;
@@ -362,7 +358,11 @@ void APillowWarsPlayerController::ConnectToHost()
         const int32 PortNumber=FCString::Atoi(*Port);
         if(PortNumber<1 || PortNumber>65535)bValid=false;
     }
-    if(!bValid)
+    return bValid;
+}
+void APillowWarsPlayerController::ConnectToHost()
+{
+    if(!IsValidJoinAddress(JoinAddress))
     {
         FrontendStatus=TEXT("That address is not valid. Use 192.168.1.20 (or add :7777).");
         return;
@@ -392,6 +392,13 @@ bool APillowWarsPlayerController::InputKey(const FInputKeyParams& Params)
         if(Params.Key==EKeys::Period || Params.Key==EKeys::Decimal)
         {
             if(JoinAddress.Len()<21)JoinAddress.AppendChar(TEXT('.'));
+            FrontendStatus.Empty();
+            return true;
+        }
+        // Tab is a layout-independent separator action; semicolon is optional.
+        if(Params.Key==EKeys::Tab || Params.Key==EKeys::Semicolon)
+        {
+            if(JoinAddress.Len()<21 && !JoinAddress.Contains(TEXT(":")))JoinAddress.AppendChar(TEXT(':'));
             FrontendStatus.Empty();
             return true;
         }
@@ -466,14 +473,14 @@ void APillowWarsPlayerController::SetupInputComponent()
     InputComponent->BindKey(EKeys::Gamepad_FaceButton_Bottom,IE_Pressed,this,&APillowWarsPlayerController::JumpPressed);
     InputComponent->BindKey(EKeys::Gamepad_FaceButton_Bottom,IE_Released,this,&APillowWarsPlayerController::JumpReleased);
     InputComponent->BindKey(EKeys::Q,IE_Pressed,this,&APillowWarsPlayerController::ThrowPressed);
-    InputComponent->BindKey(EKeys::F, IE_Pressed, this, &APillowWarsPlayerController::ServerBeginCharge);
+    InputComponent->BindKey(EKeys::F, IE_Pressed, this, &APillowWarsPlayerController::ChargePressed);
     InputComponent->BindKey(EKeys::F, IE_Released, this, &APillowWarsPlayerController::SwingReleased);
     InputComponent->BindKey(EKeys::R, IE_Pressed, this, &APillowWarsPlayerController::RestartPressed);
-    InputComponent->BindKey(EKeys::V, IE_Pressed, this, &APillowWarsPlayerController::CyclePressed);
+    InputComponent->BindKey(EKeys::B, IE_Pressed, this, &APillowWarsPlayerController::CyclePressed);
     InputComponent->BindKey(EKeys::G, IE_Pressed, this, &APillowWarsPlayerController::GuardPressed);
     InputComponent->BindKey(EKeys::G, IE_Released, this, &APillowWarsPlayerController::GuardReleased);
     InputComponent->BindKey(EKeys::E, IE_Pressed, this, &APillowWarsPlayerController::CoverPressed);
-    InputComponent->BindKey(EKeys::Gamepad_FaceButton_Left,IE_Pressed,this,&APillowWarsPlayerController::ServerBeginCharge);
+    InputComponent->BindKey(EKeys::Gamepad_FaceButton_Left,IE_Pressed,this,&APillowWarsPlayerController::ChargePressed);
     InputComponent->BindKey(EKeys::Gamepad_FaceButton_Left,IE_Released,this,&APillowWarsPlayerController::SwingReleased);
     InputComponent->BindKey(EKeys::Gamepad_RightShoulder,IE_Pressed,this,&APillowWarsPlayerController::ThrowPressed);
     InputComponent->BindKey(EKeys::Gamepad_FaceButton_Top,IE_Pressed,this,&APillowWarsPlayerController::CyclePressed);
@@ -501,15 +508,38 @@ void APillowWarsPlayerController::SetupInputComponent()
     InputComponent->BindKey(EKeys::Z,IE_Pressed,this,&APillowWarsPlayerController::SelectionPillowPrevious);
     InputComponent->BindKey(EKeys::X,IE_Pressed,this,&APillowWarsPlayerController::SelectionPillowNext);
 }
-void APillowWarsPlayerController::SwingPressed() { UE_LOG(LogTemp,Log,TEXT("PW_INPUT Swing local=%d authority=%d world=%s"),IsLocalController(),HasAuthority(),*GetWorld()->GetName()); if (HasAuthority()) ServerSwing_Implementation(); else ServerSwing(); }
-void APillowWarsPlayerController::SwingReleased() { ServerReleaseCharge(); }
+void APillowWarsPlayerController::SwingPressed() { if(!IsLocalController()||LocalScreen!=EPWLocalScreen::InGame)return; UE_LOG(LogTemp,Log,TEXT("PW_INPUT Swing local=%d authority=%d world=%s"),IsLocalController(),HasAuthority(),*GetWorld()->GetName()); if (HasAuthority()) ServerSwing_Implementation(); else ServerSwing(); }
+void APillowWarsPlayerController::ChargePressed()
+{
+    if(!IsLocalController()||LocalScreen!=EPWLocalScreen::InGame||bLocalChargeHeld)return;
+    bLocalChargeHeld=true;ServerBeginCharge();
+}
+void APillowWarsPlayerController::SwingReleased()
+{
+    if(!bLocalChargeHeld)return;
+    bLocalChargeHeld=false;
+    if(LocalScreen==EPWLocalScreen::InGame)ServerReleaseCharge();else ServerCancelCharge();
+}
+void APillowWarsPlayerController::ServerCancelCharge_Implementation()
+{
+    auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>();
+    const float Now=GetWorld()->GetTimeSeconds();
+    if(GM)GM->SettleResources(this,Now);
+    for(TActorIterator<APillowWarsWeapon> It(GetWorld());It;++It)if(It->GetOwner()==GetPawn()&&It->ChargeStartTime>=0)
+    {
+        It->ChargeStartTime=-100.f;It->ForceNetUpdate();
+        // Cancel is not release/payment; retain activity and restart recovery delay.
+        if(GM)GM->RecordResourceAction(this,Now);
+        break;
+    }
+}
 void APillowWarsPlayerController::ServerBeginCharge_Implementation()
 {
     auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>();
     if(GM)GM->SettleResources(this,GetWorld()->GetTimeSeconds());
     if(!GetPawn()){if(GM)SendActionHint(GM->GetResourceGeneration(),TEXT("state"),TEXT("Attack unavailable: wait for the next round."));return;}
     if(auto* S=GetPlayerState<APillowWarsPlayerState>();S&&(S->bEliminated||S->bGuarding)){if(GM)SendActionHint(GM->GetResourceGeneration(),TEXT("state"),S->bEliminated?TEXT("You are out. Wait for the next round."):TEXT("Release guard before attacking."));return;}
-    if(auto* M=GetWorld()->GetGameState<APillowWarsMatchState>();M&&!M->Result.IsEmpty())return;
+    if(auto* M=GetWorld()->GetGameState<APillowWarsMatchState>();!M||M->MatchPhase!=EPWMatchPhase::Playing||!M->Result.IsEmpty())return;
     const float Now=GetWorld()->GetTimeSeconds();
     for(TActorIterator<APillowWarsWeapon> It(GetWorld());It;++It)if(It->GetOwner()==GetPawn()) {
         if(It->ChargeStartTime>=0)return;
@@ -529,7 +559,7 @@ void APillowWarsPlayerController::ServerReleaseCharge_Implementation()
     }
 }
 void APillowWarsPlayerController::RestartPressed() { if (HasAuthority()) ServerRestart_Implementation(); else ServerRestart(); }
-void APillowWarsPlayerController::CyclePressed() { if(LocalScreen==EPWLocalScreen::Lobby){OpenCharacterSelect();return;} if(HasAuthority()) ServerCycle_Implementation(); else ServerCycle(); }
+void APillowWarsPlayerController::CyclePressed() { if(LocalScreen==EPWLocalScreen::Lobby){OpenCharacterSelect();return;} if(LocalScreen!=EPWLocalScreen::InGame)return; if(HasAuthority()) ServerCycle_Implementation(); else ServerCycle(); }
 void APillowWarsPlayerController::ServerCycle_Implementation() { if(auto* GM=GetWorld()->GetAuthGameMode<APillowWarsGameMode>()) GM->CycleCharacter(this); }
 void APillowWarsPlayerController::ServerSwing_Implementation() { UE_LOG(LogTemp,Log,TEXT("PW_INPUT Swing server received controller=%s pawn=%s"),*GetName(),*GetNameSafe(GetPawn())); if (APillowWarsGameMode* GM = GetWorld()->GetAuthGameMode<APillowWarsGameMode>()) GM->ServerSwing(this); }
 void APillowWarsPlayerController::ServerRestart_Implementation() { if (APillowWarsGameMode* GM = GetWorld()->GetAuthGameMode<APillowWarsGameMode>()) GM->RequestReset(this); }

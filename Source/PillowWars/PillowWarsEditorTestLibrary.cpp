@@ -7,6 +7,10 @@
 #include "PillowWarsGameMode.h"
 #include "PillowWarsCover.h"
 #include "PillowWarsStuffingPickup.h"
+#include "PillowWarsBotController.h"
+#include "PillowWarsProjectile.h"
+#include "GameFramework/Character.h"
+#include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 #if WITH_EDITOR
 #include "Settings/LevelEditorPlaySettings.h"
@@ -60,6 +64,49 @@ void UPillowWarsEditorTestLibrary::ResourceCallback(AActor* Object,FName Reason)
 #endif
 }
 
+AActor* UPillowWarsEditorTestLibrary::ResourcePileFixture(APlayerController* Player,FVector Location,float Contents)
+{
+#if WITH_EDITOR
+    if(GIsEditor&&IsValid(Player)&&Player->HasAuthority())
+        if(auto* ResourceMode=Player->GetWorld()->GetAuthGameMode<APillowWarsGameMode>())
+        {
+            const uint64 Before=ResourceMode->ResourceSerial;
+            // This is labelled explicit test supply, not an unaccounted production grant.
+            const int64 Units=PWResourceMath::Quantize(Contents);
+            ResourceMode->ResourceSupply+=Units;ResourceMode->ResourceLoss+=Units;
+            ResourceMode->PlaceLoose(Location,Units,false);
+            for(TActorIterator<APillowWarsStuffingPickup> It(Player->GetWorld());It;++It)
+                if(uint64(It->ResourceSerial)>Before)return *It;
+        }
+#endif
+    return nullptr;
+}
+AActor* UPillowWarsEditorTestLibrary::ProjectileFlightFixture(APlayerController* Player,FVector Location,FVector Direction)
+{
+#if WITH_EDITOR
+    if(GIsEditor&&IsValid(Player)&&Player->HasAuthority()&&Player->GetPawn())
+    {
+        FActorSpawnParameters Params;Params.Owner=Player->GetPawn();Params.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        if(auto* Projectile=Player->GetWorld()->SpawnActor<APillowWarsProjectile>(Location,Direction.Rotation(),Params))
+        {Projectile->Launch(Direction);return Projectile;}
+    }
+#endif
+    return nullptr;
+}
+bool UPillowWarsEditorTestLibrary::ProjectileContactFixture(APlayerController* Player,ACharacter* Victim,FVector Direction)
+{
+#if WITH_EDITOR
+    if(GIsEditor&&IsValid(Player)&&Player->HasAuthority())
+        if(auto* ResourceMode=Player->GetWorld()->GetAuthGameMode<APillowWarsGameMode>())return ResourceMode->ApplyPillowContact(Player,Victim,Direction,-1.f,true);
+#endif
+    return false;
+}
+void UPillowWarsEditorTestLibrary::BotThinkFixture(APlayerController* Player)
+{
+#if WITH_EDITOR
+    if(GIsEditor)if(auto* Bot=Cast<APillowWarsBotController>(Player);IsValid(Bot)&&Bot->HasAuthority())Bot->Think(Bot->GetWorld()->GetTimeSeconds());
+#endif
+}
 void UPillowWarsEditorTestLibrary::QueuePlayerKey(APlayerController* Player,FName Key,float HoldSeconds)
 {
 #if WITH_EDITOR
